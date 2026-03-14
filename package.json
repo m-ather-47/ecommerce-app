@@ -9,9 +9,17 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@neondatabase/auth": "^0.1.0-beta.21",
+    "@tailwindcss/postcss": "^4.2.1",
+    "@whop/checkout": "^0.0.52",
+    "@whop/sdk": "^0.0.34",
+    "mongoose": "^9.3.0",
     "next": "16.1.6",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "server-only": "^0.0.1",
+    "tailwindcss": "^4.2.1",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/node": "^20",
