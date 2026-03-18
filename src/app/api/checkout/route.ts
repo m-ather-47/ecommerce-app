@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { withAuth, AuthenticatedRequest } from "@/lib/middleware/auth";
 import { errorResponse, AppError } from "@/lib/errors";
-import { whop } from "@/lib/whop";
 import Cart from "@/lib/models/Cart";
 import Product from "@/lib/models/Product";
 import Order from "@/lib/models/Order";
@@ -64,6 +63,7 @@ export const POST = withAuth(async (req: AuthenticatedRequest) => {
     }
 
     const total = subtotal;
+    const testCheckoutId = `test_${crypto.randomBytes(8).toString("hex")}`;
 
     const order = await Order.create({
       userId: req.user._id,
@@ -73,35 +73,13 @@ export const POST = withAuth(async (req: AuthenticatedRequest) => {
       tax: 0,
       total,
       status: "pending",
-      whopCheckoutId: "pending",
+      whopCheckoutId: testCheckoutId,
       shippingAddress: req.user.shippingAddress,
     });
 
-    // Price is in dollars for Whop (our DB stores cents)
-    const totalDollars = total / 100;
-
-    const checkoutConfig = await whop.checkoutConfigurations.create({
-      plan: {
-        company_id: process.env.WHOP_COMPANY_ID!,
-        currency: "usd",
-        initial_price: totalDollars,
-        plan_type: "one_time",
-        title: `Order ${order.orderNumber}`,
-        visibility: "hidden",
-      },
-      metadata: {
-        orderId: order._id.toString(),
-        userId: req.user._id.toString(),
-      },
-      redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/orders/${order._id}?success=true`,
-    });
-
-    order.whopCheckoutId = checkoutConfig.id;
-    await order.save();
-
     return NextResponse.json({
-      checkoutId: checkoutConfig.id,
-      purchaseUrl: checkoutConfig.purchase_url,
+      checkoutId: testCheckoutId,
+      purchaseUrl: `${process.env.NEXT_PUBLIC_APP_URL}/test-payment?orderId=${order._id}`,
     });
   } catch (error) {
     return errorResponse(error);

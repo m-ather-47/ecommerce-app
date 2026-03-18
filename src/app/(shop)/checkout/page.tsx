@@ -4,12 +4,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getCart, getProfile, updateProfile, createCheckout } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
-import type { Cart, UserProfile } from "@/lib/types";
+import type { Cart } from "@/lib/types";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const [cart, setCart] = useState<Cart | null>(null);
-  const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +35,6 @@ export default function CheckoutPage() {
         }
 
         setCart(cartData.cart);
-        setUser(userData.user);
 
         if (userData.user.shippingAddress) {
           setForm({
@@ -244,7 +242,7 @@ export default function CheckoutPage() {
                 {submitting ? "Processing..." : "Place Order"}
               </button>
               <p className="mt-3 text-center text-xs text-gray-500">
-                You will be redirected to Whop for secure payment
+                Test mode: You will simulate payment (no real charges)
               </p>
             </div>
           </div>

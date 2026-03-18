@@ -1,6 +1,6 @@
 import { neonAuthMiddleware } from "@neondatabase/auth/next/server";
 
-export default neonAuthMiddleware({
+export const proxy = neonAuthMiddleware({
   loginUrl: "/auth/sign-in",
 });
 
