@@ -19,10 +19,20 @@ async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
     headers: { "Content-Type": "application/json", ...options?.headers },
     ...options,
   });
+
+  const contentType = res.headers.get("content-type");
+  if (!contentType || !contentType.includes("application/json")) {
+    throw new ApiClientError(
+      res.ok ? "Invalid response format" : "Request failed",
+      res.ok ? 500 : res.status
+    );
+  }
+
   if (!res.ok) {
     const body = await res.json().catch(() => ({ error: "Request failed" }));
-    throw new ApiClientError(body.error, res.status);
+    throw new ApiClientError(body.error || "Request failed", res.status);
   }
+
   return res.json();
 }
 

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ZodError } from "zod";
+import { z } from "zod";
 
 export class AppError extends Error {
   constructor(
@@ -19,7 +19,7 @@ export function errorResponse(error: unknown): NextResponse {
     );
   }
 
-  if (error instanceof ZodError) {
+  if (error instanceof z.ZodError) {
     return NextResponse.json(
       { error: "Validation failed", details: error.flatten().fieldErrors },
       { status: 400 }

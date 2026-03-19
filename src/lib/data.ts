@@ -27,6 +27,8 @@ export async function getProducts(
   let sortOption: Record<string, 1 | -1> = { createdAt: -1 };
   if (params.sort === "price_asc") sortOption = { price: 1 };
   else if (params.sort === "price_desc") sortOption = { price: -1 };
+  else if (params.sort === "name_asc") sortOption = { name: 1 };
+  else if (params.sort === "name_desc") sortOption = { name: -1 };
 
   const [products, total] = await Promise.all([
     Product.find(filter).sort(sortOption).skip(skip).limit(limit).lean(),
@@ -60,6 +62,32 @@ export async function getFeaturedProducts(
 ): Promise<ProductType[]> {
   await dbConnect();
   const products = await Product.find({ isActive: true, stock: { $gt: 0 } })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .lean();
+  return JSON.parse(JSON.stringify(products));
+}
+
+export async function getBestSellers(limit = 4): Promise<ProductType[]> {
+  await dbConnect();
+  // In a real app, this would sort by sales count
+  const products = await Product.find({ isActive: true, stock: { $gt: 0 } })
+    .sort({ updatedAt: -1 })
+    .limit(limit)
+    .lean();
+  return JSON.parse(JSON.stringify(products));
+}
+
+export async function getProductsByCategory(
+  category: string,
+  limit = 4
+): Promise<ProductType[]> {
+  await dbConnect();
+  const products = await Product.find({
+    isActive: true,
+    stock: { $gt: 0 },
+    category,
+  })
     .sort({ createdAt: -1 })
     .limit(limit)
     .lean();

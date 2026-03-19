@@ -1,107 +1,202 @@
-import Link from "next/link";
+import { Suspense } from "react";
 import ProductCard from "@/components/ProductCard";
-import { getFeaturedProducts, getCategories } from "@/lib/data";
+import HomeFilters from "@/components/HomeFilters";
+import Pagination from "@/components/Pagination";
+import EmptyState from "@/components/EmptyState";
+import { getProducts, getCategories } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
-export default async function HomePage() {
-  const [products, categories] = await Promise.all([
-    getFeaturedProducts(8),
+interface HomePageProps {
+  searchParams: Promise<{
+    page?: string;
+    q?: string;
+    category?: string;
+    sort?: string;
+  }>;
+}
+
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const params = await searchParams;
+  const page = Number(params.page) || 1;
+  const q = params.q || "";
+  const category = params.category || "";
+  const sort = params.sort || "";
+
+  const [{ products, pagination }, categories] = await Promise.all([
+    getProducts({
+      page,
+      limit: 12,
+      q: q || undefined,
+      category: category || undefined,
+      sort: sort || undefined,
+    }),
     getCategories(),
   ]);
 
+  const currentSearchParams: Record<string, string> = {};
+  if (q) currentSearchParams.q = q;
+  if (category) currentSearchParams.category = category;
+  if (sort) currentSearchParams.sort = sort;
+
   return (
     <>
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-600 to-blue-800 text-white">
-        <div className="mx-auto max-w-7xl px-4 py-24 text-center">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-            Welcome to Store
-          </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-blue-100">
-            Discover amazing products at great prices. Shop with confidence
-            using secure payments powered by Whop.
-          </p>
-          <Link
-            href="/products"
-            className="mt-8 inline-block rounded-lg bg-white px-8 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50"
-          >
-            Shop Now
-          </Link>
+      {/* Announcement Bar */}
+      <div className="bg-black text-white">
+        <div className="mx-auto max-w-7xl px-4 py-2.5 text-center text-sm">
+          Free Shipping on Orders Over $50 | Use Code{" "}
+          <span className="font-semibold">SAVE10</span> for 10% Off
+        </div>
+      </div>
+
+      {/* Hero Banner - Slim */}
+      <section className="relative bg-gradient-to-r from-gray-900 via-gray-800 to-black">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:py-12">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              New Arrivals
+            </h1>
+            <p className="mt-2 text-gray-300">
+              Discover our latest collection of premium products
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* Featured Products */}
-      {products.length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 py-16">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900">New Arrivals</h2>
-            <Link
-              href="/products"
-              className="text-sm font-medium text-blue-600 hover:text-blue-700"
-            >
-              View All &rarr;
-            </Link>
+      {/* Main Content */}
+      <main className="mx-auto max-w-7xl px-4 py-8">
+        {/* Filters */}
+        <Suspense>
+          <HomeFilters
+            categories={categories}
+            currentCategory={category}
+            currentSort={sort}
+            currentQuery={q}
+            totalProducts={pagination.total}
+          />
+        </Suspense>
+
+        {/* Products Grid */}
+        {products.length === 0 ? (
+          <div className="mt-8">
+            <EmptyState
+              title="No products found"
+              description="Try adjusting your search or filters to find what you're looking for."
+              actionLabel="Clear Filters"
+              actionHref="/"
+            />
           </div>
-          <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        ) : (
+          <div className="mt-6 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
             {products.map((product) => (
               <ProductCard key={product._id} product={product} />
             ))}
           </div>
-        </section>
-      )}
+        )}
 
-      {/* Categories */}
-      {categories.length > 0 && (
-        <section className="bg-gray-100 py-16">
-          <div className="mx-auto max-w-7xl px-4">
-            <h2 className="text-center text-2xl font-bold text-gray-900">
-              Shop by Category
-            </h2>
-            <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-              {categories.map((category) => (
-                <Link
-                  key={category}
-                  href={`/products?category=${encodeURIComponent(category)}`}
-                  className="rounded-xl border border-gray-200 bg-white p-6 text-center font-medium text-gray-900 transition-shadow hover:shadow-md"
+        {/* Pagination */}
+        <Pagination
+          currentPage={pagination.page}
+          totalPages={pagination.pages}
+          basePath="/"
+          searchParams={currentSearchParams}
+        />
+      </main>
+
+      {/* Trust Badges */}
+      <section className="border-t border-gray-200 bg-gray-50">
+        <div className="mx-auto max-w-7xl px-4 py-8">
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black">
+                <svg
+                  className="h-5 w-5 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
                 >
-                  {category}
-                </Link>
-              ))}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-900">
+                  Quality Guarantee
+                </p>
+                <p className="text-xs text-gray-500">100% Original</p>
+              </div>
             </div>
-          </div>
-        </section>
-      )}
-
-      {/* Value Props */}
-      <section className="mx-auto max-w-7xl px-4 py-16">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
-          <div className="text-center">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-              <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
-              </svg>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black">
+                <svg
+                  className="h-5 w-5 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-900">
+                  Free Shipping
+                </p>
+                <p className="text-xs text-gray-500">On orders $50+</p>
+              </div>
             </div>
-            <h3 className="font-semibold text-gray-900">Fast Shipping</h3>
-            <p className="mt-1 text-sm text-gray-500">Quick delivery to your door</p>
-          </div>
-          <div className="text-center">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-              <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-              </svg>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black">
+                <svg
+                  className="h-5 w-5 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-900">
+                  Secure Payment
+                </p>
+                <p className="text-xs text-gray-500">SSL Encrypted</p>
+              </div>
             </div>
-            <h3 className="font-semibold text-gray-900">Secure Payments</h3>
-            <p className="mt-1 text-sm text-gray-500">Protected by Whop checkout</p>
-          </div>
-          <div className="text-center">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-              <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182M15.015 4.355v5" />
-              </svg>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black">
+                <svg
+                  className="h-5 w-5 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-900">Easy Returns</p>
+                <p className="text-xs text-gray-500">30 Day Policy</p>
+              </div>
             </div>
-            <h3 className="font-semibold text-gray-900">Easy Returns</h3>
-            <p className="mt-1 text-sm text-gray-500">30-day return policy</p>
           </div>
         </div>
       </section>

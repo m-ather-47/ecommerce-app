@@ -12,25 +12,30 @@ type AnyHandlerFn = (req: any, context: RouteContext) => Promise<NextResponse>;
 
 export function withAuth(handler: AnyHandlerFn) {
   return async (req: NextRequest, context: RouteContext): Promise<NextResponse> => {
-    const { session, user: authUser } = await neonAuth();
+    try {
+      const { session, user: authUser } = await neonAuth();
 
-    if (!session || !authUser) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      if (!session || !authUser) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+
+      await dbConnect();
+
+      let user = await User.findOne({ neonAuthId: authUser.id });
+      if (!user) {
+        user = await User.create({
+          neonAuthId: authUser.id,
+          email: authUser.email,
+          name: authUser.name || authUser.email.split("@")[0],
+          role: "customer",
+        });
+      }
+
+      (req as AuthenticatedRequest).user = user;
+      return handler(req as AuthenticatedRequest, context);
+    } catch (error) {
+      console.error("Auth middleware error:", error);
+      return NextResponse.json({ error: "Authentication failed" }, { status: 401 });
     }
-
-    await dbConnect();
-
-    let user = await User.findOne({ neonAuthId: authUser.id });
-    if (!user) {
-      user = await User.create({
-        neonAuthId: authUser.id,
-        email: authUser.email,
-        name: authUser.name || authUser.email.split("@")[0],
-        role: "customer",
-      });
-    }
-
-    (req as AuthenticatedRequest).user = user;
-    return handler(req as AuthenticatedRequest, context);
   };
 }
