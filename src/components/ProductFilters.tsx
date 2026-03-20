@@ -133,44 +133,6 @@ export default function ProductFilters({
           </svg>
         </div>
       </div>
-
-      {/* Active Filters */}
-      {(currentQuery || currentCategory || currentSort) && (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-gray-500">Active filters:</span>
-          {currentQuery && (
-            <button
-              onClick={() => handleSearchChange("")}
-              className="inline-flex items-center gap-1.5 rounded-full bg-gray-900 py-1.5 pl-3 pr-2 text-xs font-medium text-white"
-            >
-              {currentQuery}
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          )}
-          {currentCategory && (
-            <button
-              onClick={() => updateParams({ category: undefined })}
-              className="inline-flex items-center gap-1.5 rounded-full bg-gray-900 py-1.5 pl-3 pr-2 text-xs font-medium text-white"
-            >
-              {currentCategory}
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          )}
-          <button
-            onClick={() => {
-              handleSearchChange("");
-              router.push("/products");
-            }}
-            className="text-sm font-medium text-gray-500 underline transition hover:text-gray-900"
-          >
-            Clear all
-          </button>
-        </div>
-      )}
     </div>
   );
 }

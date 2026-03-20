@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { useCart } from "@/contexts/CartContext";
 
 interface ProductCardProps {
   product: {
@@ -15,7 +17,27 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+  const { addItem } = useCart();
+  const [added, setAdded] = useState(false);
   const priceDisplay = (product.price / 100).toFixed(2);
+
+  const handleQuickAdd = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (product.stock === 0) return;
+
+    addItem({
+      productId: product._id,
+      name: product.name,
+      slug: product.slug,
+      price: product.price,
+      image: product.images[0] || "",
+    });
+
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1500);
+  };
 
   return (
     <Link
@@ -24,22 +46,15 @@ export default function ProductCard({ product }: ProductCardProps) {
     >
       {/* Product Image */}
       <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-gray-100">
-        {product.images.length > 0 ? (
-          <>
-            <img
-              src={product.images[0]}
-              alt={product.name}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-            {/* Second image on hover */}
-            {product.images.length > 1 && (
-              <img
-                src={product.images[1]}
-                alt={product.name}
-                className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-              />
-            )}
-          </>
+        {product.images.length > 0 && product.images[0] ? (
+          <img
+            src={product.images[0]}
+            alt={product.name}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
         ) : (
           <div className="flex h-full items-center justify-center text-gray-300">
             <svg
@@ -66,30 +81,35 @@ export default function ProductCard({ product }: ProductCardProps) {
         )}
 
         {/* Quick Add Button */}
-        <div className="absolute bottom-3 left-3 right-3 translate-y-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            className="w-full rounded-full bg-black py-3 text-xs font-medium text-white transition hover:bg-gray-800"
-          >
-            Quick View
-          </button>
-        </div>
-
-        {/* Wishlist Button */}
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-          className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-gray-600 opacity-0 backdrop-blur-sm transition-all hover:text-red-500 group-hover:opacity-100"
-        >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-          </svg>
-        </button>
+        {product.stock > 0 && (
+          <div className="absolute bottom-3 left-3 right-3 translate-y-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+            <button
+              onClick={handleQuickAdd}
+              disabled={added}
+              className={`flex w-full items-center justify-center gap-2 rounded-full py-3 text-xs font-medium transition ${
+                added
+                  ? "bg-green-600 text-white"
+                  : "bg-black text-white hover:bg-gray-800"
+              }`}
+            >
+              {added ? (
+                <>
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  Added
+                </>
+              ) : (
+                <>
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
+                  Quick Add
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Product Info */}

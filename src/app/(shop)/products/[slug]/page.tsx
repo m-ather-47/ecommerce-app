@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getProductBySlug } from "@/lib/data";
+import { getProductBySlug, getRelatedProducts } from "@/lib/data";
 import { formatPrice } from "@/lib/utils";
 import AddToCartButton from "@/components/AddToCartButton";
+import ProductCard from "@/components/ProductCard";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +30,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   if (!product) notFound();
 
+  const relatedProducts = await getRelatedProducts(product.category, slug, 4);
+
   return (
     <div className="bg-white">
       <div className="mx-auto max-w-7xl px-4 py-8 lg:py-12">
@@ -42,6 +45,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </svg>
           <Link href="/products" className="text-gray-500 transition hover:text-gray-900">
             Products
+          </Link>
+          <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+          <Link href={`/products?category=${product.category}`} className="text-gray-500 transition hover:text-gray-900">
+            {product.category}
           </Link>
           <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
@@ -92,9 +101,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <div className="space-y-6">
               {/* Category Badge */}
               <div>
-                <span className="inline-block rounded-full bg-gray-100 px-3 py-1 text-xs font-medium uppercase tracking-wide text-gray-700">
+                <Link
+                  href={`/products?category=${product.category}`}
+                  className="inline-block rounded-full bg-gray-100 px-3 py-1 text-xs font-medium uppercase tracking-wide text-gray-700 transition hover:bg-gray-200"
+                >
                   {product.category}
-                </span>
+                </Link>
               </div>
 
               {/* Title & Price */}
@@ -172,6 +184,31 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
         </div>
       </div>
+
+      {/* Related Products */}
+      {relatedProducts.length > 0 && (
+        <div className="border-t border-gray-100 bg-gray-50">
+          <div className="mx-auto max-w-7xl px-4 py-16">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-bold text-gray-900">You May Also Like</h2>
+              <Link
+                href={`/products?category=${product.category}`}
+                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition flex items-center gap-1"
+              >
+                View All {product.category}
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4">
+              {relatedProducts.map((relatedProduct) => (
+                <ProductCard key={relatedProduct._id} product={relatedProduct} />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

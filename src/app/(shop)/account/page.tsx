@@ -45,7 +45,11 @@ export default function AccountPage() {
           router.push("/auth/sign-in");
           return;
         }
-        setError(err instanceof Error ? err.message : "Failed to load profile");
+        const errorMessage = err instanceof Error ? err.message : "Failed to load profile";
+        // Don't show error for empty/invalid responses
+        if (errorMessage !== "Invalid response format") {
+          setError(errorMessage);
+        }
       } finally {
         setLoading(false);
       }

@@ -93,3 +93,20 @@ export async function getProductsByCategory(
     .lean();
   return JSON.parse(JSON.stringify(products));
 }
+
+export async function getRelatedProducts(
+  category: string,
+  excludeSlug: string,
+  limit = 4
+): Promise<ProductType[]> {
+  await dbConnect();
+  const products = await Product.find({
+    isActive: true,
+    category,
+    slug: { $ne: excludeSlug },
+  })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .lean();
+  return JSON.parse(JSON.stringify(products));
+}

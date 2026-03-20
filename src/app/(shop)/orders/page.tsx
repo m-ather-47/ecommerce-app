@@ -31,7 +31,11 @@ function OrdersContent() {
           router.push("/auth/sign-in");
           return;
         }
-        setError(err instanceof Error ? err.message : "Failed to load orders");
+        const errorMessage = err instanceof Error ? err.message : "Failed to load orders";
+        // Don't show error for empty/invalid responses - just show empty state
+        if (errorMessage !== "Invalid response format") {
+          setError(errorMessage);
+        }
       } finally {
         setLoading(false);
       }

@@ -2,26 +2,24 @@
 
 import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
-import type { CartItem } from "@/lib/types";
+import type { LocalCartItem } from "@/contexts/CartContext";
 
 interface CartItemRowProps {
-  item: CartItem;
-  onUpdateQuantity: (itemId: string, quantity: number) => Promise<void>;
-  onRemove: (itemId: string) => Promise<void>;
-  isUpdating: boolean;
+  item: LocalCartItem;
+  onUpdateQuantity: (productId: string, quantity: number) => void;
+  onRemove: (productId: string) => void;
 }
 
 export default function CartItemRow({
   item,
   onUpdateQuantity,
   onRemove,
-  isUpdating,
 }: CartItemRowProps) {
   return (
-    <div className={`flex gap-4 p-6 transition ${isUpdating ? "opacity-60" : ""}`}>
+    <div className="flex gap-4 p-6">
       {/* Product Image */}
       <Link
-        href={`/products/${item.slug || item._id}`}
+        href={`/products/${item.slug}`}
         className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl bg-gray-100"
       >
         {item.image ? (
@@ -43,7 +41,7 @@ export default function CartItemRow({
       <div className="flex flex-1 flex-col justify-between min-w-0">
         <div>
           <Link
-            href={`/products/${item.slug || item._id}`}
+            href={`/products/${item.slug}`}
             className="font-medium text-gray-900 hover:text-black transition line-clamp-1"
           >
             {item.name}
@@ -57,8 +55,8 @@ export default function CartItemRow({
         <div className="mt-3 flex items-center gap-4">
           <div className="inline-flex items-center rounded-full border border-gray-200">
             <button
-              onClick={() => onUpdateQuantity(item._id, item.quantity - 1)}
-              disabled={isUpdating || item.quantity <= 1}
+              onClick={() => onUpdateQuantity(item.productId, item.quantity - 1)}
+              disabled={item.quantity <= 1}
               className="flex h-8 w-8 items-center justify-center text-gray-600 transition hover:text-gray-900 disabled:opacity-50"
             >
               <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -69,9 +67,8 @@ export default function CartItemRow({
               {item.quantity}
             </span>
             <button
-              onClick={() => onUpdateQuantity(item._id, item.quantity + 1)}
-              disabled={isUpdating}
-              className="flex h-8 w-8 items-center justify-center text-gray-600 transition hover:text-gray-900 disabled:opacity-50"
+              onClick={() => onUpdateQuantity(item.productId, item.quantity + 1)}
+              className="flex h-8 w-8 items-center justify-center text-gray-600 transition hover:text-gray-900"
             >
               <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -80,9 +77,8 @@ export default function CartItemRow({
           </div>
 
           <button
-            onClick={() => onRemove(item._id)}
-            disabled={isUpdating}
-            className="text-sm text-gray-500 transition hover:text-red-600 disabled:opacity-50"
+            onClick={() => onRemove(item.productId)}
+            className="text-sm text-gray-500 transition hover:text-red-600"
           >
             Remove
           </button>

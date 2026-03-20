@@ -1,74 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { getCart, updateCartItem, removeCartItem } from "@/lib/api";
+import { useCart } from "@/contexts/CartContext";
 import { formatPrice } from "@/lib/utils";
-import type { Cart } from "@/lib/types";
 import CartItemRow from "@/components/CartItemRow";
 import EmptyState from "@/components/EmptyState";
 
 export default function CartPage() {
-  const router = useRouter();
-  const [cart, setCart] = useState<Cart | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set());
-  const [error, setError] = useState<string | null>(null);
+  const { items, updateQuantity, removeItem, total, isLoading } = useCart();
 
-  useEffect(() => {
-    fetchCart();
-  }, []);
-
-  async function fetchCart() {
-    try {
-      const data = await getCart();
-      setCart(data.cart);
-    } catch (err) {
-      if (err instanceof Error && "status" in err && (err as { status: number }).status === 401) {
-        router.push("/auth/sign-in");
-        return;
-      }
-      setError(err instanceof Error ? err.message : "Failed to load cart");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleUpdateQuantity(itemId: string, quantity: number) {
-    if (quantity < 1) return;
-    setUpdatingItems((prev) => new Set(prev).add(itemId));
-    try {
-      const data = await updateCartItem(itemId, quantity);
-      setCart(data.cart);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update item");
-    } finally {
-      setUpdatingItems((prev) => {
-        const next = new Set(prev);
-        next.delete(itemId);
-        return next;
-      });
-    }
-  }
-
-  async function handleRemove(itemId: string) {
-    setUpdatingItems((prev) => new Set(prev).add(itemId));
-    try {
-      const data = await removeCartItem(itemId);
-      setCart(data.cart);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to remove item");
-    } finally {
-      setUpdatingItems((prev) => {
-        const next = new Set(prev);
-        next.delete(itemId);
-        return next;
-      });
-    }
-  }
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="bg-gray-50 min-h-screen">
         <div className="mx-auto max-w-7xl px-4 py-12">
@@ -86,12 +27,6 @@ export default function CartPage() {
     );
   }
 
-  const items = cart?.items || [];
-  const subtotal = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
-
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="mx-auto max-w-7xl px-4 py-12">
@@ -106,24 +41,6 @@ export default function CartPage() {
             </p>
           )}
         </div>
-
-        {error && (
-          <div className="mt-6 flex items-center gap-3 rounded-xl bg-red-50 p-4 text-sm text-red-700">
-            <svg className="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-            </svg>
-            <span className="flex-1">{error}</span>
-            <button
-              onClick={() => {
-                setError(null);
-                fetchCart();
-              }}
-              className="font-medium underline hover:no-underline"
-            >
-              Retry
-            </button>
-          </div>
-        )}
 
         {items.length === 0 ? (
           <div className="mt-12">
@@ -142,11 +59,10 @@ export default function CartPage() {
                 <div className="divide-y divide-gray-100">
                   {items.map((item) => (
                     <CartItemRow
-                      key={item._id}
+                      key={item.productId}
                       item={item}
-                      onUpdateQuantity={handleUpdateQuantity}
-                      onRemove={handleRemove}
-                      isUpdating={updatingItems.has(item._id)}
+                      onUpdateQuantity={updateQuantity}
+                      onRemove={removeItem}
                     />
                   ))}
                 </div>
@@ -175,7 +91,7 @@ export default function CartPage() {
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-600">Subtotal</span>
                     <span className="font-medium text-gray-900">
-                      {formatPrice(subtotal)}
+                      {formatPrice(total)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
@@ -188,7 +104,7 @@ export default function CartPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-base font-semibold text-gray-900">Total</span>
                     <span className="text-xl font-bold text-gray-900">
-                      {formatPrice(subtotal)}
+                      {formatPrice(total)}
                     </span>
                   </div>
                 </div>
