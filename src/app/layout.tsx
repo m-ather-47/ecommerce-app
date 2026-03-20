@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Inter } from "next/font/google";
 import AuthProvider from "@/components/AuthProvider";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Store",
-  description: "E-Commerce Store",
+  title: "VOGUE | Premium Fashion & Lifestyle",
+  description: "Discover premium fashion and lifestyle products curated for the modern individual.",
 };
 
 export default function RootLayout({
@@ -20,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} font-sans bg-gray-50 text-gray-900 antialiased`}>
+      <body className={`${inter.className} bg-white text-gray-900 antialiased`}>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

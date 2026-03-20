@@ -50,20 +50,20 @@ export default function HomeFilters({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Search Bar */}
       <div className="relative">
         <svg
-          className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"
+          className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
-          strokeWidth={2}
+          strokeWidth={1.5}
         >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
           />
         </svg>
         <input
@@ -71,62 +71,115 @@ export default function HomeFilters({
           placeholder="Search products..."
           value={query}
           onChange={(e) => handleSearchChange(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 bg-white py-3 pl-10 pr-4 text-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
+          className="w-full rounded-full border border-gray-200 bg-white py-3.5 pl-12 pr-4 text-sm text-gray-900 placeholder-gray-500 transition focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
         />
+        {query && (
+          <button
+            onClick={() => handleSearchChange("")}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
       </div>
 
-      {/* Category Pills */}
-      <div className="flex flex-wrap gap-2">
-        <button
-          onClick={() => updateParams({ category: undefined })}
-          className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-            !currentCategory
-              ? "bg-black text-white"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-          }`}
-        >
-          All
-        </button>
-        {categories.map((cat) => (
+      {/* Category Pills & Sort */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap gap-2">
           <button
-            key={cat}
-            onClick={() => updateParams({ category: cat })}
-            className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-              currentCategory === cat
-                ? "bg-black text-white"
+            onClick={() => updateParams({ category: undefined })}
+            className={`rounded-full px-5 py-2 text-sm font-medium transition ${
+              !currentCategory
+                ? "bg-gray-900 text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            {cat}
+            All
           </button>
-        ))}
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => updateParams({ category: cat })}
+              className={`rounded-full px-5 py-2 text-sm font-medium transition ${
+                currentCategory === cat
+                  ? "bg-gray-900 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-4">
+          <p className="text-sm text-gray-500">
+            <span className="font-medium text-gray-900">{totalProducts}</span>{" "}
+            {totalProducts === 1 ? "product" : "products"}
+          </p>
+          <div className="relative">
+            <select
+              value={currentSort || ""}
+              onChange={(e) => updateParams({ sort: e.target.value || undefined })}
+              className="appearance-none rounded-full border border-gray-200 bg-white py-2 pl-4 pr-10 text-sm font-medium text-gray-900 transition focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+            >
+              <option value="">Newest</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+              <option value="name_asc">Name: A to Z</option>
+              <option value="name_desc">Name: Z to A</option>
+            </select>
+            <svg
+              className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
       </div>
 
-      {/* Sort & Results Count */}
-      <div className="flex items-center justify-between border-b border-gray-200 pb-4">
-        <p className="text-sm text-gray-600">
-          <span className="font-medium text-gray-900">{totalProducts}</span>{" "}
-          product{totalProducts !== 1 ? "s" : ""}
+      {/* Active Filters */}
+      {(currentQuery || currentCategory) && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm text-gray-500">Active filters:</span>
           {currentQuery && (
-            <span>
-              {" "}
-              for &quot;<span className="font-medium">{currentQuery}</span>
-              &quot;
-            </span>
+            <button
+              onClick={() => handleSearchChange("")}
+              className="inline-flex items-center gap-1.5 rounded-full bg-gray-900 py-1.5 pl-3 pr-2 text-xs font-medium text-white"
+            >
+              Search: {currentQuery}
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           )}
-        </p>
-        <select
-          value={currentSort || ""}
-          onChange={(e) => updateParams({ sort: e.target.value || undefined })}
-          className="cursor-pointer rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
-        >
-          <option value="">Sort by: Newest</option>
-          <option value="price_asc">Price: Low to High</option>
-          <option value="price_desc">Price: High to Low</option>
-          <option value="name_asc">Name: A to Z</option>
-          <option value="name_desc">Name: Z to A</option>
-        </select>
-      </div>
+          {currentCategory && (
+            <button
+              onClick={() => updateParams({ category: undefined })}
+              className="inline-flex items-center gap-1.5 rounded-full bg-gray-900 py-1.5 pl-3 pr-2 text-xs font-medium text-white"
+            >
+              {currentCategory}
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+          <button
+            onClick={() => {
+              handleSearchChange("");
+              updateParams({ category: undefined, sort: undefined });
+            }}
+            className="text-sm font-medium text-gray-500 underline transition hover:text-gray-900"
+          >
+            Clear all
+          </button>
+        </div>
+      )}
     </div>
   );
 }
