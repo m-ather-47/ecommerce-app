@@ -1,7 +1,7 @@
 import { neonAuthMiddleware } from "@neondatabase/auth/next/server";
 
 export const proxy = neonAuthMiddleware({
-  loginUrl: "/auth/sign-in",
+  loginUrl: "/auth/login",
 });
 
 export const config = {

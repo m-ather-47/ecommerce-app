@@ -140,7 +140,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
               {/* Add to Cart */}
               <div className="space-y-4 border-t border-gray-200 pt-6">
-                <AddToCartButton productId={product._id} stock={product.stock} />
+                <AddToCartButton
+                  productId={product._id}
+                  name={product.name}
+                  slug={product.slug}
+                  price={product.price}
+                  image={product.images[0] || ""}
+                  stock={product.stock}
+                />
               </div>
 
               {/* Description */}

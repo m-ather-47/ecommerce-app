@@ -42,7 +42,7 @@ export default function AccountPage() {
         }
       } catch (err) {
         if (err instanceof Error && "status" in err && (err as { status: number }).status === 401) {
-          router.push("/auth/sign-in");
+          router.push("/auth/login");
           return;
         }
         const errorMessage = err instanceof Error ? err.message : "Failed to load profile";

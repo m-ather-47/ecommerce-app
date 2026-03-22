@@ -9,14 +9,14 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { session, user: authUser } = await authServer.getSession();
+  const { user } = await authServer.getSession();
 
-  if (!session || !authUser) {
-    redirect("/auth/sign-in");
+  if (!user) {
+    redirect("/auth/login");
   }
 
   await dbConnect();
-  const dbUser = await User.findOne({ neonAuthId: authUser.id }).lean();
+  const dbUser = await User.findOne({ neonAuthId: user.id }).lean();
 
   if (!dbUser || dbUser.role !== "admin") {
     redirect("/");

@@ -144,7 +144,7 @@ export default function CheckoutPage() {
 
             <div className="mt-8 space-y-3">
               <Link
-                href="/auth/sign-in"
+                href="/auth/login"
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-black py-4 text-sm font-medium text-white transition hover:bg-gray-800"
               >
                 Sign In
@@ -153,7 +153,7 @@ export default function CheckoutPage() {
                 </svg>
               </Link>
               <Link
-                href="/auth/sign-up"
+                href="/auth/register"
                 className="flex w-full items-center justify-center rounded-full border border-gray-200 py-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
                 Create Account

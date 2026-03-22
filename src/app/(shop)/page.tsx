@@ -46,7 +46,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     <>
       {/* Hero Section */}
       {showHero && (
-        <section className="relative overflow-hidden bg-gray-100">
+        <section className="relative bg-gray-100">
           <div className="mx-auto max-w-7xl px-4">
             <div className="grid min-h-[500px] items-center gap-8 py-12 lg:grid-cols-2 lg:py-0">
               <div className="order-2 lg:order-1">
@@ -80,7 +80,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                   </Link>
                 </div>
               </div>
-              <div className="order-1 lg:order-2">
+              <div className="order-1 lg:order-2 pb-8 lg:pb-0">
                 <div className="relative">
                   <div className="aspect-[4/5] overflow-hidden rounded-3xl bg-gray-200">
                     <img
@@ -90,7 +90,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                     />
                   </div>
                   {/* Floating Badge */}
-                  <div className="absolute -bottom-6 -left-6 rounded-2xl bg-white p-4 shadow-xl">
+                  <div className="absolute -bottom-6 left-4 rounded-2xl bg-white p-4 shadow-xl sm:-left-6">
                     <p className="text-xs font-medium text-gray-500 uppercase">Up to</p>
                     <p className="text-3xl font-bold text-gray-900">40% Off</p>
                     <p className="text-xs text-gray-500">Selected Items</p>

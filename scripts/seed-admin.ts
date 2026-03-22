@@ -67,7 +67,7 @@ async function seedAdmin() {
     console.log(`Password: ather`);
     console.log(`Role: admin`);
     console.log("=================================");
-    console.log("\nIMPORTANT: Sign up at /auth/sign-up with these credentials,");
+    console.log("\nIMPORTANT: Sign up at /auth/register with these credentials,");
     console.log("then run this script again to grant admin role.");
     console.log("=================================\n");
 

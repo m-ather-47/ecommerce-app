@@ -1,21 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { addToCart } from "@/lib/api";
+import { useCart } from "@/contexts/CartContext";
 
 interface AddToCartButtonProps {
   productId: string;
+  name: string;
+  slug: string;
+  price: number;
+  image: string;
   stock: number;
 }
 
 export default function AddToCartButton({
   productId,
+  name,
+  slug,
+  price,
+  image,
   stock,
 }: AddToCartButtonProps) {
-  const router = useRouter();
+  const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
-  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -23,25 +29,16 @@ export default function AddToCartButton({
 
   const outOfStock = stock === 0;
 
-  async function handleAddToCart() {
-    setLoading(true);
-    setMessage(null);
-    try {
-      await addToCart(productId, quantity);
-      setMessage({ type: "success", text: "Added to cart!" });
-      setTimeout(() => setMessage(null), 3000);
-    } catch (err) {
-      if (err instanceof Error && "status" in err && (err as { status: number }).status === 401) {
-        router.push("/auth/sign-in");
-        return;
-      }
-      setMessage({
-        type: "error",
-        text: err instanceof Error ? err.message : "Failed to add to cart",
-      });
-    } finally {
-      setLoading(false);
-    }
+  function handleAddToCart() {
+    addItem({
+      productId,
+      name,
+      slug,
+      price,
+      image,
+    }, quantity);
+    setMessage({ type: "success", text: "Added to cart!" });
+    setTimeout(() => setMessage(null), 3000);
   }
 
   if (outOfStock) {
@@ -89,25 +86,12 @@ export default function AddToCartButton({
       <div className="flex gap-3">
         <button
           onClick={handleAddToCart}
-          disabled={loading}
-          className="flex-1 flex items-center justify-center gap-2 rounded-full bg-black py-4 text-sm font-medium text-white transition hover:bg-gray-800 disabled:bg-gray-400"
+          className="flex-1 flex items-center justify-center gap-2 rounded-full bg-black py-4 text-sm font-medium text-white transition hover:bg-gray-800"
         >
-          {loading ? (
-            <>
-              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              Adding...
-            </>
-          ) : (
-            <>
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-              </svg>
-              Add to Cart
-            </>
-          )}
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+          </svg>
+          Add to Cart
         </button>
         <button className="flex h-14 w-14 items-center justify-center rounded-full border border-gray-200 text-gray-600 transition hover:border-gray-300 hover:text-red-500">
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
