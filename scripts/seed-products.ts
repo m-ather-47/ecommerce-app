@@ -132,7 +132,7 @@ const productData = [
       "Elegant pleated midi skirt with a flattering high waist. Made from flowing fabric that creates beautiful movement. Perfect for work or special occasions.",
     price: 89.00,
     images: [
-      "https://images.unsplash.com/photo-1583496661160-fb5886a0aeec?w=800&q=80",
+      "https://plus.unsplash.com/premium_photo-1671718111976-48b74d57c181?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=800&q=80",
     ],
     category: "Women",
