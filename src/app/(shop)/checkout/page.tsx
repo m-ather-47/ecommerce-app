@@ -17,8 +17,8 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [syncingCart, setSyncingCart] = useState(false);
 
+  const [email, setEmail] = useState("");
   const [form, setForm] = useState({
     street: "",
     city: "",
@@ -38,6 +38,9 @@ export default function CheckoutPage() {
 
     // If user is logged in, load their profile
     if (user) {
+      if (user.email) {
+        setEmail(user.email);
+      }
       loadProfile();
     } else {
       setLoading(false);
@@ -47,6 +50,9 @@ export default function CheckoutPage() {
   async function loadProfile() {
     try {
       const userData = await getProfile();
+      if (userData.user.email) {
+        setEmail(userData.user.email);
+      }
       if (userData.user.shippingAddress) {
         setForm({
           street: userData.user.shippingAddress.street || "",
@@ -64,32 +70,27 @@ export default function CheckoutPage() {
     }
   }
 
-  async function syncCartToServer() {
-    // Add all local cart items to the server cart
-    for (const item of items) {
-      await addToCart(item.productId, item.quantity);
-    }
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.street || !form.city || !form.state || !form.postalCode || !form.country) {
-      setError("Please fill in all shipping address fields.");
+    if (!email || !form.street || !form.city || !form.state || !form.postalCode || !form.country) {
+      setError("Please fill in email and all shipping address fields.");
       return;
     }
 
     setSubmitting(true);
-    setSyncingCart(true);
     setError(null);
 
     try {
-      // Sync local cart to server
-      await syncCartToServer();
-      setSyncingCart(false);
-
-      // Update shipping address and create checkout
-      await updateProfile({ shippingAddress: form });
-      const checkout = await createCheckout();
+      // If user is logged in, optionally update their profile
+      if (user) {
+        try {
+          await updateProfile({ shippingAddress: form });
+        } catch (updateErr) {
+          console.warn("Failed to update profile", updateErr);
+        }
+      }
+      
+      const checkout = await createCheckout({ cartItems: items, shippingAddress: form, email });
 
       // Clear local cart after successful checkout initiation
       clearCart();
@@ -97,7 +98,6 @@ export default function CheckoutPage() {
       window.location.href = checkout.purchaseUrl;
     } catch (err) {
       setSubmitting(false);
-      setSyncingCart(false);
       if (err instanceof Error) {
         setError(err.message);
       } else {
@@ -114,61 +114,6 @@ export default function CheckoutPage() {
           <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
             <div className="h-96 animate-pulse rounded-2xl bg-gray-200" />
             <div className="h-64 animate-pulse rounded-2xl bg-gray-200" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Show sign-in prompt if not authenticated
-  if (!user) {
-    return (
-      <div className="bg-gray-50 min-h-screen">
-        <div className="mx-auto max-w-lg px-4 py-16">
-          <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-              <svg className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-              </svg>
-            </div>
-            <h1 className="mt-6 text-2xl font-bold text-gray-900">Sign in to checkout</h1>
-            <p className="mt-2 text-gray-600">
-              Please sign in to your account to complete your purchase.
-            </p>
-
-            {/* Cart Summary */}
-            <div className="mt-6 rounded-xl bg-gray-50 p-4 text-left">
-              <p className="text-sm font-medium text-gray-700">Your cart ({items.length} items)</p>
-              <p className="mt-1 text-lg font-semibold text-gray-900">{formatPrice(total)}</p>
-            </div>
-
-            <div className="mt-8 space-y-3">
-              <Link
-                href="/auth/login"
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-black py-4 text-sm font-medium text-white transition hover:bg-gray-800"
-              >
-                Sign In
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                </svg>
-              </Link>
-              <Link
-                href="/auth/register"
-                className="flex w-full items-center justify-center rounded-full border border-gray-200 py-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-              >
-                Create Account
-              </Link>
-            </div>
-
-            <Link
-              href="/cart"
-              className="mt-6 inline-flex items-center gap-2 text-sm text-gray-500 transition hover:text-gray-700"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-              </svg>
-              Return to cart
-            </Link>
           </div>
         </div>
       </div>
@@ -215,6 +160,19 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="mt-6 space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Email address
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder-gray-500 transition focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+                      placeholder="you@example.com"
+                    />
+                  </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
                       Street Address
@@ -382,7 +340,7 @@ export default function CheckoutPage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                       </svg>
-                      {syncingCart ? "Preparing order..." : "Processing..."}
+                      {submitting ? "Processing..." : "Place Order"}
                     </>
                   ) : (
                     <>

@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "VOGUE | Premium Fashion & Lifestyle",
+  title: "LUMINA | Premium Fashion & Lifestyle",
   description: "Discover premium fashion and lifestyle products curated for the modern individual.",
 };
 

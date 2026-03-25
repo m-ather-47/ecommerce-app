@@ -21,7 +21,7 @@ export default function LoginPage() {
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white">
               <span className="text-2xl font-bold text-black">V</span>
             </div>
-            <span className="text-2xl font-bold tracking-tight text-white">VOGUE</span>
+            <span className="text-2xl font-bold tracking-tight text-white">LUMINA</span>
           </Link>
 
           {/* Tagline */}
@@ -30,7 +30,7 @@ export default function LoginPage() {
               Discover Premium Fashion & Lifestyle
             </h1>
             <p className="text-lg text-gray-400 leading-relaxed">
-              Join thousands of style-conscious individuals who trust VOGUE for their premium fashion needs.
+              Join thousands of style-conscious individuals who trust LUMINA for their premium fashion needs.
             </p>
           </div>
 
@@ -49,7 +49,7 @@ export default function LoginPage() {
               ))}
             </div>
             <p className="text-gray-300 italic mb-4">
-              "VOGUE has transformed my wardrobe. The quality and curation is unmatched."
+              &quot;LUMINA has transformed my wardrobe. The quality and curation is unmatched.&quot;
             </p>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-white font-medium">
@@ -85,19 +85,19 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <div className="auth-container rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+          <div className="auth-container rounded-2xl border border-gray-200 bg-white p-8 pb-6 shadow-sm">
             <AuthView pathname="sign-in" />
+            
+            <div className="mt-6 text-center text-sm text-gray-500">
+              Don&apos;t have an account?{" "}
+              <Link
+                href="/auth/register"
+                className="font-semibold text-black hover:text-gray-800 transition-colors hover:underline underline-offset-4"
+              >
+                Sign Up
+              </Link>
+            </div>
           </div>
-
-          <p className="mt-6 text-center text-sm text-gray-500">
-            Don't have an account?{" "}
-            <Link
-              href="/auth/register"
-              className="font-medium text-black hover:underline"
-            >
-              Create one
-            </Link>
-          </p>
 
           {/* Security badge */}
           <div className="mt-8 flex items-center justify-center gap-2 text-gray-400">

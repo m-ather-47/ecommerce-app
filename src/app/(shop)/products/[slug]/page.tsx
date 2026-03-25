@@ -5,6 +5,7 @@ import { getProductBySlug, getRelatedProducts } from "@/lib/data";
 import { formatPrice } from "@/lib/utils";
 import AddToCartButton from "@/components/AddToCartButton";
 import ProductCard from "@/components/ProductCard";
+import ProductImageGallery from "@/components/ProductImageGallery";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ export async function generateMetadata({
   const product = await getProductBySlug(slug);
   if (!product) return { title: "Product Not Found" };
   return {
-    title: `${product.name} | VOGUE`,
+    title: `${product.name} | LUMINA`,
     description: product.description,
   };
 }
@@ -60,41 +61,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
           {/* Image Gallery */}
-          <div className="space-y-4">
-            <div className="aspect-square overflow-hidden rounded-2xl bg-gray-100">
-              {product.images.length > 0 ? (
-                <img
-                  src={product.images[0]}
-                  alt={product.name}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center text-gray-300">
-                  <svg className="h-24 w-24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-              )}
-            </div>
-            {product.images.length > 1 && (
-              <div className="grid grid-cols-4 gap-3">
-                {product.images.slice(0, 4).map((img, i) => (
-                  <button
-                    key={i}
-                    className={`aspect-square overflow-hidden rounded-xl bg-gray-100 ring-2 ring-offset-2 transition ${
-                      i === 0 ? "ring-black" : "ring-transparent hover:ring-gray-300"
-                    }`}
-                  >
-                    <img
-                      src={img}
-                      alt={`${product.name} ${i + 1}`}
-                      className="h-full w-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <ProductImageGallery images={product.images} productName={product.name} />
 
           {/* Product Info */}
           <div className="lg:sticky lg:top-32 lg:self-start">

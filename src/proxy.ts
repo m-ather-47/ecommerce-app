@@ -7,7 +7,6 @@ export const proxy = neonAuthMiddleware({
 export const config = {
   matcher: [
     "/api/cart/:path*",
-    "/api/checkout/:path*",
     "/api/orders/:path*",
     "/api/users/:path*",
     "/api/admin/:path*",

@@ -1,49 +1,82 @@
-import { NextResponse } from "next/server";
-import { withAuth, AuthenticatedRequest } from "@/lib/middleware/auth";
+import { NextRequest, NextResponse } from "next/server";
 import { errorResponse, AppError } from "@/lib/errors";
-import { db, carts, cartItems, products, orders, orderItems } from "@/lib/db";
+import { db, products, orders, orderItems, users, carts, cartItems as dbCartItemsTable } from "@/lib/db";
 import { eq, inArray } from "drizzle-orm";
 import { generateId, generateOrderNumber } from "@/lib/db/utils";
 import crypto from "crypto";
+import { neonAuth } from "@neondatabase/auth/next/server";
 
-export const POST = withAuth(async (req: AuthenticatedRequest) => {
+export async function POST(req: NextRequest) {
   try {
-    // Find cart
-    const cartResult = await db
-      .select()
-      .from(carts)
-      .where(eq(carts.userId, req.user.id))
-      .limit(1);
+    const body = await req.json().catch(() => ({}));
+    let { cartItems } = body;
+    let shippingAddress = body.shippingAddress;
+    let userEmail = body.email || null;
 
-    const cart = cartResult[0];
-    if (!cart) {
-      throw new AppError("Cart is empty", 400);
+    let userId: string | null = null;
+
+    // Check for authenticated user - use conditional approach to avoid redirects
+    try {
+      const authResult = await neonAuth().catch(() => ({ session: null, user: null }));
+      const { session, user: authUser } = authResult || { session: null, user: null };
+
+      if (session && authUser) {
+        // Find user in db
+        const userResult = await db
+          .select()
+          .from(users)
+          .where(eq(users.neonAuthId, authUser.id))
+          .limit(1);
+
+        const user = userResult[0];
+        if (user) {
+          userId = user.id;
+          if (!userEmail) userEmail = user.email;
+          if (!shippingAddress && user.shippingAddress) {
+            shippingAddress = JSON.parse(user.shippingAddress);
+          }
+
+          if (!cartItems || cartItems.length === 0) {
+            const cartResult = await db
+              .select()
+              .from(carts)
+              .where(eq(carts.userId, user.id))
+              .limit(1);
+
+            const cart = cartResult[0];
+            if (cart) {
+              const itemsResult = await db
+                .select()
+                .from(dbCartItemsTable)
+                .where(eq(dbCartItemsTable.cartId, cart.id));
+              cartItems = itemsResult;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore auth errors for guests - continue with guest checkout
+      console.log("Guest checkout - no authentication");
     }
 
-    // Get cart items
-    const cartItemsResult = await db
-      .select()
-      .from(cartItems)
-      .where(eq(cartItems.cartId, cart.id));
-
-    if (cartItemsResult.length === 0) {
-      throw new AppError("Cart is empty", 400);
+    if (!userEmail) {
+      throw new AppError("Email is required for checkout", 400);
     }
 
-    // Check shipping address
-    const shippingAddress = req.user.shippingAddress
-      ? JSON.parse(req.user.shippingAddress)
-      : null;
+    if (!cartItems || cartItems.length === 0) {
+      throw new AppError("Cart is empty", 400);
+    }
 
     if (!shippingAddress?.street) {
       throw new AppError(
-        "Shipping address is required. Update your profile first.",
+        "Shipping address is required.",
         400
       );
     }
 
+
     // Get all products in cart
-    const productIds = cartItemsResult.map((item) => item.productId);
+    const productIds = cartItems.map((item: any) => item.productId);
     const productsResult = await db
       .select()
       .from(products)
@@ -54,11 +87,11 @@ export const POST = withAuth(async (req: AuthenticatedRequest) => {
     const orderItemsData = [];
     let subtotal = 0;
 
-    for (const cartItem of cartItemsResult) {
+    for (const cartItem of cartItems) {
       const product = productMap.get(cartItem.productId);
       if (!product || !product.isActive) {
         throw new AppError(
-          `Product "${cartItem.name}" is no longer available`,
+          `Product "${cartItem.name || product?.name || cartItem.productId}" is no longer available`,
           409
         );
       }
@@ -90,7 +123,8 @@ export const POST = withAuth(async (req: AuthenticatedRequest) => {
     // Create order
     await db.insert(orders).values({
       id: orderId,
-      userId: req.user.id,
+      userId,
+      userEmail,
       orderNumber: generateOrderNumber(),
       subtotal,
       tax: 0,
@@ -112,9 +146,11 @@ export const POST = withAuth(async (req: AuthenticatedRequest) => {
 
     return NextResponse.json({
       checkoutId: testCheckoutId,
-      purchaseUrl: `${process.env.NEXT_PUBLIC_APP_URL}/test-payment?orderId=${orderId}`,
+      purchaseUrl: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/test-payment?orderId=${orderId}`,
     });
   } catch (error) {
+    console.error("Checkout error:", error);
     return errorResponse(error);
   }
-});
+}
+

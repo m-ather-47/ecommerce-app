@@ -6,7 +6,7 @@ export default function AboutPage() {
       {/* Hero Section */}
       <section className="bg-black text-white">
         <div className="mx-auto max-w-7xl px-4 py-24 text-center">
-          <h1 className="text-4xl font-bold md:text-5xl">About VOGUE</h1>
+          <h1 className="text-4xl font-bold md:text-5xl">About LUMINA</h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-300">
             Redefining modern fashion with timeless elegance and sustainable practices since 2015.
           </p>
@@ -20,7 +20,7 @@ export default function AboutPage() {
             <h2 className="text-3xl font-bold text-gray-900">Our Story</h2>
             <div className="mt-6 space-y-4 text-gray-600">
               <p>
-                VOGUE was founded with a simple vision: to create fashion that empowers individuals
+                LUMINA was founded with a simple vision: to create fashion that empowers individuals
                 to express their authentic selves. What started as a small boutique in New York City
                 has grown into a global fashion destination.
               </p>
@@ -117,7 +117,7 @@ export default function AboutPage() {
       {/* CTA Section */}
       <section className="bg-black py-16 text-white">
         <div className="mx-auto max-w-3xl px-4 text-center">
-          <h2 className="text-3xl font-bold">Join the VOGUE Family</h2>
+          <h2 className="text-3xl font-bold">Join the LUMINA Family</h2>
           <p className="mt-4 text-gray-300">
             Discover our latest collections and be part of the fashion revolution.
           </p>

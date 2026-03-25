@@ -39,7 +39,7 @@ export default function Footer() {
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
                 <span className="text-xl font-bold text-gray-900">V</span>
               </div>
-              <span className="text-xl font-bold">VOGUE</span>
+              <span className="text-xl font-bold">LUMINA</span>
             </Link>
             <p className="mt-4 text-sm text-gray-400 leading-relaxed">
               Premium fashion and lifestyle products curated for the modern individual.
@@ -162,7 +162,7 @@ export default function Footer() {
         <div className="mx-auto max-w-7xl px-4 py-6">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-gray-500">
-              <p>&copy; {new Date().getFullYear()} VOGUE. All rights reserved.</p>
+              <p>&copy; {new Date().getFullYear()} LUMINA. All rights reserved.</p>
               <Link href="/privacy" className="transition hover:text-white">
                 Privacy Policy
               </Link>

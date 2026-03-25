@@ -32,7 +32,7 @@ export default function Navbar() {
             <span className="font-medium">SPRING SALE • UP TO 40% OFF</span>
           </div>
           <div className="hidden items-center gap-4 sm:flex">
-            <Link href="/orders" className="text-gray-300 hover:text-white transition">
+            <Link href="/orders/tracking" className="text-gray-300 hover:text-white transition">
               Track Order
             </Link>
             <span className="text-gray-600">|</span>
@@ -81,7 +81,7 @@ export default function Navbar() {
               <span className="text-xl font-bold text-white">V</span>
             </div>
             <span className="text-xl font-bold tracking-tight text-gray-900">
-              VOGUE
+              LUMINA
             </span>
           </Link>
 

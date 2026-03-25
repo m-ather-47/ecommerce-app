@@ -9,7 +9,7 @@ export default function TermsPage() {
           <h2 className="text-xl font-semibold text-gray-900">1. Agreement to Terms</h2>
           <div className="mt-4 space-y-4 text-gray-600">
             <p>
-              By accessing or using VOGUE&apos;s website and services, you agree to be bound by these
+              By accessing or using LUMINA&apos;s website and services, you agree to be bound by these
               Terms of Service and all applicable laws and regulations. If you do not agree with
               any of these terms, you are prohibited from using or accessing this site.
             </p>
@@ -20,7 +20,7 @@ export default function TermsPage() {
           <h2 className="text-xl font-semibold text-gray-900">2. Use License</h2>
           <div className="mt-4 space-y-4 text-gray-600">
             <p>
-              Permission is granted to temporarily access the materials on VOGUE&apos;s website for
+              Permission is granted to temporarily access the materials on LUMINA&apos;s website for
               personal, non-commercial use only. This is the grant of a license, not a transfer
               of title, and under this license you may not:
             </p>
@@ -115,12 +115,12 @@ export default function TermsPage() {
           <div className="mt-4 space-y-4 text-gray-600">
             <p>
               All content on this website, including text, graphics, logos, images, and software,
-              is the property of VOGUE or its content suppliers and is protected by copyright,
+              is the property of LUMINA or its content suppliers and is protected by copyright,
               trademark, and other intellectual property laws.
             </p>
             <p>
-              The VOGUE name, logo, and all related names, logos, product and service names,
-              designs, and slogans are trademarks of VOGUE. You may not use these marks without
+              The LUMINA name, logo, and all related names, logos, product and service names,
+              designs, and slogans are trademarks of LUMINA. You may not use these marks without
               our prior written permission.
             </p>
           </div>
@@ -130,7 +130,7 @@ export default function TermsPage() {
           <h2 className="text-xl font-semibold text-gray-900">9. User Content</h2>
           <div className="mt-4 space-y-4 text-gray-600">
             <p>
-              If you submit reviews, comments, or other content to our website, you grant VOGUE
+              If you submit reviews, comments, or other content to our website, you grant LUMINA
               a non-exclusive, royalty-free, perpetual, irrevocable right to use, reproduce,
               modify, and display such content. You represent that you own or have the rights
               to submit such content.
@@ -142,7 +142,7 @@ export default function TermsPage() {
           <h2 className="text-xl font-semibold text-gray-900">10. Limitation of Liability</h2>
           <div className="mt-4 space-y-4 text-gray-600">
             <p>
-              VOGUE shall not be liable for any indirect, incidental, special, consequential,
+              LUMINA shall not be liable for any indirect, incidental, special, consequential,
               or punitive damages arising from your use of our website or products. Our total
               liability shall not exceed the amount paid by you for the product giving rise to
               the claim.

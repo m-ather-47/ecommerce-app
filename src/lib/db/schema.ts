@@ -34,7 +34,8 @@ export const products = sqliteTable("products", {
 // Orders table
 export const orders = sqliteTable("orders", {
   id: text("id").primaryKey(),
-  userId: text("user_id").notNull().references(() => users.id),
+  userId: text("user_id").references(() => users.id),
+  userEmail: text("user_email").notNull(),
   orderNumber: text("order_number").notNull().unique(),
   subtotal: real("subtotal").notNull(),
   tax: real("tax").notNull().default(0),

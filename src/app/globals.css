@@ -322,26 +322,29 @@
 }
 
 /* Divider styling */
-.auth-container [data-slot="separator"],
-.auth-container hr {
-  margin: 1.5rem 0;
-  border: none;
-  border-top: 1px solid #e5e7eb;
-  position: relative;
+.auth-container span.text-muted-foreground {
+  font-size: 0 !important;
+  color: transparent !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.auth-container [data-slot="separator"]::after {
-  content: "or";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  background: #fff;
-  padding: 0 1rem;
+.auth-container span.text-muted-foreground::after {
+  content: "OR";
+  font-size: 0.875rem;
   color: #9ca3af;
-  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  display: block;
+  background: white;
+  padding: 0 0.5rem;
+}
+
+.auth-container form {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1rem !important;
 }
 
 /* Custom scrollbar */

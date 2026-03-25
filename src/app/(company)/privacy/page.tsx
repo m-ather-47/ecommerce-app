@@ -9,7 +9,7 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-semibold text-gray-900">Introduction</h2>
           <div className="mt-4 space-y-4 text-gray-600">
             <p>
-              VOGUE (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) is committed to protecting your privacy.
+              LUMINA (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) is committed to protecting your privacy.
               This Privacy Policy explains how we collect, use, disclose, and safeguard your
               information when you visit our website or make a purchase.
             </p>

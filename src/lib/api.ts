@@ -58,8 +58,11 @@ export const clearCart = () =>
   apiFetch<{ message: string }>("/api/cart", { method: "DELETE" });
 
 // Checkout
-export const createCheckout = () =>
-  apiFetch<CheckoutResponse>("/api/checkout", { method: "POST" });
+export const createCheckout = (body?: { cartItems: any[]; shippingAddress: any; email?: string }) =>
+  apiFetch<CheckoutResponse>("/api/checkout", { 
+    method: "POST",
+    ...(body ? { body: JSON.stringify(body) } : {})
+  });
 
 // Orders
 export const getOrders = (page = 1, limit = 10) =>

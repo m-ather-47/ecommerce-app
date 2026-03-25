@@ -11,7 +11,7 @@ export default function AccessibilityPage() {
           <h2 className="text-xl font-semibold text-gray-900">Our Commitment</h2>
           <div className="mt-4 space-y-4 text-gray-600">
             <p>
-              VOGUE is committed to ensuring digital accessibility for people with disabilities.
+              LUMINA is committed to ensuring digital accessibility for people with disabilities.
               We are continually improving the user experience for everyone and applying the
               relevant accessibility standards.
             </p>

@@ -21,7 +21,7 @@ export default function RegisterPage() {
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white">
               <span className="text-2xl font-bold text-black">V</span>
             </div>
-            <span className="text-2xl font-bold tracking-tight text-white">VOGUE</span>
+            <span className="text-2xl font-bold tracking-tight text-white">LUMINA</span>
           </Link>
 
           {/* Features */}
@@ -108,19 +108,19 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          <div className="auth-container rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+          <div className="auth-container rounded-2xl border border-gray-200 bg-white p-8 pb-6 shadow-sm">
             <AuthView pathname="sign-up" />
+            
+            <div className="mt-6 text-center text-sm text-gray-500">
+              Already have an account?{" "}
+              <Link
+                href="/auth/login"
+                className="font-semibold text-black hover:text-gray-800 transition-colors hover:underline underline-offset-4"
+              >
+                Sign In
+              </Link>
+            </div>
           </div>
-
-          <p className="mt-6 text-center text-sm text-gray-500">
-            Already have an account?{" "}
-            <Link
-              href="/auth/login"
-              className="font-medium text-black hover:underline"
-            >
-              Sign in
-            </Link>
-          </p>
 
           {/* Terms */}
           <p className="mt-6 text-center text-xs text-gray-400 max-w-sm mx-auto">

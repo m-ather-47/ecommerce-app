@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { withAuth, AuthenticatedRequest } from "@/lib/middleware/auth";
 import { errorResponse } from "@/lib/errors";
 import { db, orders, orderItems } from "@/lib/db";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, or } from "drizzle-orm";
 import { mapOrderToApi, mapOrderItemToApi, OrderStatus } from "@/lib/types";
 
 export const GET = withAuth(async (req: AuthenticatedRequest) => {
@@ -17,7 +17,7 @@ export const GET = withAuth(async (req: AuthenticatedRequest) => {
     const conditions = [];
 
     if (!isAdmin) {
-      conditions.push(eq(orders.userId, req.user.id));
+      conditions.push(or(eq(orders.userId, req.user.id), eq(orders.userEmail, req.user.email)));
     } else {
       const userId = searchParams.get("userId");
       if (userId) conditions.push(eq(orders.userId, userId));

@@ -25,6 +25,86 @@ export const db = drizzle(sqlite, { schema });
 // Export schema for use in queries
 export * from "./schema";
 
+function ensureOrdersUserIdNullable() {
+  const columns = sqlite.prepare("PRAGMA table_info(orders)").all() as Array<{
+    name: string;
+    notnull: number;
+  }>;
+
+  const userIdColumn = columns.find((column) => column.name === "user_id");
+  if (!userIdColumn || userIdColumn.notnull === 0) {
+    return;
+  }
+
+  // Legacy databases may have orders.user_id as NOT NULL; rebuild table to make it nullable.
+  sqlite.exec(`
+    PRAGMA foreign_keys = OFF;
+    BEGIN TRANSACTION;
+
+    CREATE TABLE orders_new (
+      id TEXT PRIMARY KEY,
+      user_id TEXT REFERENCES users(id),
+      user_email TEXT NOT NULL,
+      order_number TEXT NOT NULL UNIQUE,
+      subtotal REAL NOT NULL,
+      tax REAL NOT NULL DEFAULT 0,
+      total REAL NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'paid', 'shipped', 'delivered', 'cancelled')),
+      whop_checkout_id TEXT NOT NULL UNIQUE,
+      whop_payment_id TEXT,
+      shipping_address TEXT NOT NULL,
+      paid_at INTEGER,
+      shipped_at INTEGER,
+      delivered_at INTEGER,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+
+    INSERT INTO orders_new (
+      id,
+      user_id,
+      user_email,
+      order_number,
+      subtotal,
+      tax,
+      total,
+      status,
+      whop_checkout_id,
+      whop_payment_id,
+      shipping_address,
+      paid_at,
+      shipped_at,
+      delivered_at,
+      created_at,
+      updated_at
+    )
+    SELECT
+      id,
+      user_id,
+      user_email,
+      order_number,
+      subtotal,
+      tax,
+      total,
+      status,
+      whop_checkout_id,
+      whop_payment_id,
+      shipping_address,
+      paid_at,
+      shipped_at,
+      delivered_at,
+      created_at,
+      updated_at
+    FROM orders;
+
+    DROP TABLE orders;
+    ALTER TABLE orders_new RENAME TO orders;
+
+    COMMIT;
+    PRAGMA foreign_keys = ON;
+  `);
+}
+
 // Initialize database tables
 export function initDb() {
   sqlite.exec(`
@@ -57,7 +137,8 @@ export function initDb() {
 
     CREATE TABLE IF NOT EXISTS orders (
       id TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL REFERENCES users(id),
+      user_id TEXT REFERENCES users(id),
+      user_email TEXT NOT NULL,
       order_number TEXT NOT NULL UNIQUE,
       subtotal REAL NOT NULL,
       tax REAL NOT NULL DEFAULT 0,
@@ -99,7 +180,11 @@ export function initDb() {
       quantity INTEGER NOT NULL,
       image TEXT
     );
+  `);
 
+  ensureOrdersUserIdNullable();
+
+  sqlite.exec(`
     -- Create indexes
     CREATE INDEX IF NOT EXISTS idx_users_neon_auth_id ON users(neon_auth_id);
     CREATE INDEX IF NOT EXISTS idx_products_slug ON products(slug);

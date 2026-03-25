@@ -4,42 +4,42 @@ const pressReleases = [
   {
     id: 1,
     date: "March 15, 2026",
-    title: "VOGUE Launches Sustainable Fashion Initiative",
+    title: "LUMINA Launches Sustainable Fashion Initiative",
     excerpt: "New collection features 100% recycled materials as part of our commitment to environmental responsibility.",
     category: "Sustainability",
   },
   {
     id: 2,
     date: "February 28, 2026",
-    title: "VOGUE Expands to 10 New Markets",
+    title: "LUMINA Expands to 10 New Markets",
     excerpt: "International expansion brings premium fashion to customers across Asia and South America.",
     category: "Company News",
   },
   {
     id: 3,
     date: "January 10, 2026",
-    title: "VOGUE Partners with Celebrity Designer",
+    title: "LUMINA Partners with Celebrity Designer",
     excerpt: "Exclusive collaboration brings limited-edition collection to our customers this spring.",
     category: "Collections",
   },
   {
     id: 4,
     date: "December 5, 2025",
-    title: "VOGUE Named Top Fashion E-Commerce Brand",
+    title: "LUMINA Named Top Fashion E-Commerce Brand",
     excerpt: "Industry recognition highlights our commitment to customer experience and quality.",
     category: "Awards",
   },
   {
     id: 5,
     date: "November 20, 2025",
-    title: "VOGUE Reaches 2 Million Customer Milestone",
+    title: "LUMINA Reaches 2 Million Customer Milestone",
     excerpt: "Celebrating our growing community of fashion-forward customers worldwide.",
     category: "Company News",
   },
 ];
 
 const mediaFeatures = [
-  { name: "Vogue Magazine", logo: "V" },
+  { name: "Lumina Magazine", logo: "V" },
   { name: "Elle", logo: "E" },
   { name: "Harper's Bazaar", logo: "HB" },
   { name: "GQ", logo: "GQ" },
@@ -55,7 +55,7 @@ export default function PressPage() {
         <div className="mx-auto max-w-7xl px-4 py-24 text-center">
           <h1 className="text-4xl font-bold md:text-5xl">Press & Media</h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-300">
-            The latest news, announcements, and media resources from VOGUE.
+            The latest news, announcements, and media resources from LUMINA.
           </p>
         </div>
       </section>
@@ -110,7 +110,7 @@ export default function PressPage() {
           <div className="text-center">
             <h2 className="text-2xl font-bold text-gray-900">As Featured In</h2>
             <p className="mt-2 text-gray-600">
-              VOGUE has been featured in leading publications worldwide.
+              LUMINA has been featured in leading publications worldwide.
             </p>
           </div>
           <div className="mt-12 grid grid-cols-3 gap-8 md:grid-cols-6">
