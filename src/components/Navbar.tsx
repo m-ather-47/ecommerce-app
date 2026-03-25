@@ -35,10 +35,6 @@ export default function Navbar() {
             <Link href="/orders/tracking" className="text-gray-300 hover:text-white transition">
               Track Order
             </Link>
-            <span className="text-gray-600">|</span>
-            <Link href="/account" className="text-gray-300 hover:text-white transition">
-              Help
-            </Link>
           </div>
         </div>
       </div>
