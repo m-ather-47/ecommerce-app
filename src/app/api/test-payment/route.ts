@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import dbConnect from "@/lib/mongodb";
-import Order from "@/lib/models/Order";
-import Product from "@/lib/models/Product";
-import Cart from "@/lib/models/Cart";
+import { db, orders, orderItems, products, carts, cartItems } from "@/lib/db";
+import { eq, and, gte } from "drizzle-orm";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest): Promise<Response> {
@@ -15,9 +13,14 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
 
-  await dbConnect();
+  // Find order
+  const orderResult = await db
+    .select()
+    .from(orders)
+    .where(eq(orders.id, orderId))
+    .limit(1);
 
-  const order = await Order.findById(orderId);
+  const order = orderResult[0];
   if (!order) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
@@ -30,41 +33,71 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   if (action === "cancel") {
-    order.status = "cancelled";
-    await order.save();
+    await db
+      .update(orders)
+      .set({ status: "cancelled", updatedAt: new Date() })
+      .where(eq(orders.id, orderId));
     return NextResponse.json({ success: true, status: "cancelled" });
   }
 
-  // Simulate successful payment
-  // Atomically decrement stock for each item
-  for (const item of order.items) {
-    const result = await Product.findOneAndUpdate(
-      { _id: item.productId, stock: { $gte: item.quantity } },
-      { $inc: { stock: -item.quantity } },
-      { new: true }
-    );
-    if (!result) {
+  // Get order items
+  const items = await db
+    .select()
+    .from(orderItems)
+    .where(eq(orderItems.orderId, orderId));
+
+  // Simulate successful payment - decrement stock for each item
+  for (const item of items) {
+    // Check if product has enough stock
+    const productResult = await db
+      .select()
+      .from(products)
+      .where(and(eq(products.id, item.productId), gte(products.stock, item.quantity)))
+      .limit(1);
+
+    if (!productResult[0]) {
       // Stock insufficient — cancel order
-      order.status = "cancelled";
-      await order.save();
+      await db
+        .update(orders)
+        .set({ status: "cancelled", updatedAt: new Date() })
+        .where(eq(orders.id, orderId));
       return NextResponse.json(
         { error: "Insufficient stock, order cancelled" },
         { status: 409 }
       );
     }
+
+    // Decrement stock
+    await db
+      .update(products)
+      .set({
+        stock: productResult[0].stock - item.quantity,
+        updatedAt: new Date(),
+      })
+      .where(eq(products.id, item.productId));
   }
 
   // Mark order as paid
-  order.status = "paid";
-  order.whopPaymentId = `test_pay_${crypto.randomBytes(8).toString("hex")}`;
-  order.paidAt = new Date();
-  await order.save();
+  await db
+    .update(orders)
+    .set({
+      status: "paid",
+      whopPaymentId: `test_pay_${crypto.randomBytes(8).toString("hex")}`,
+      paidAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(orders.id, orderId));
 
   // Clear the user's cart
-  await Cart.findOneAndUpdate(
-    { userId: order.userId },
-    { $set: { items: [] } }
-  );
+  const cartResult = await db
+    .select()
+    .from(carts)
+    .where(eq(carts.userId, order.userId))
+    .limit(1);
+
+  if (cartResult[0]) {
+    await db.delete(cartItems).where(eq(cartItems.cartId, cartResult[0].id));
+  }
 
   return NextResponse.json({ success: true, status: "paid" });
 }

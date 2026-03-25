@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { authServer } from "@/lib/auth/server";
-import dbConnect from "@/lib/mongodb";
-import User from "@/lib/models/User";
+import { db, users } from "@/lib/db";
+import { eq } from "drizzle-orm";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 
 export default async function AdminLayout({
@@ -9,14 +9,20 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user } = await authServer.getSession();
+  const session = await authServer.getSession();
+  const user = session?.data?.user;
 
   if (!user) {
     redirect("/auth/login");
   }
 
-  await dbConnect();
-  const dbUser = await User.findOne({ neonAuthId: user.id }).lean();
+  const dbUserResult = await db
+    .select()
+    .from(users)
+    .where(eq(users.neonAuthId, user.id))
+    .limit(1);
+
+  const dbUser = dbUserResult[0];
 
   if (!dbUser || dbUser.role !== "admin") {
     redirect("/");

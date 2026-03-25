@@ -2,8 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { authServer } from "@/lib/auth/server";
 import { getAdminUser } from "@/lib/admin-data";
-import dbConnect from "@/lib/mongodb";
-import User from "@/lib/models/User";
+import { db, users } from "@/lib/db";
+import { eq } from "drizzle-orm";
 import UserRoleSelect from "@/components/admin/UserRoleSelect";
 
 interface PageProps {
@@ -18,12 +18,19 @@ export default async function UserDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const { user: authUser } = await authServer.getSession();
-  await dbConnect();
-  const currentAdmin = authUser
-    ? await User.findOne({ neonAuthId: authUser.id }).lean()
-    : null;
-  const isSelf = currentAdmin?._id.toString() === user._id;
+  const session = await authServer.getSession();
+  const authUser = session?.data?.user;
+
+  const currentAdminResult = authUser
+    ? await db
+        .select()
+        .from(users)
+        .where(eq(users.neonAuthId, authUser.id))
+        .limit(1)
+    : [];
+
+  const currentAdmin = currentAdminResult[0];
+  const isSelf = currentAdmin?.id === user._id;
 
   return (
     <div className="space-y-6">

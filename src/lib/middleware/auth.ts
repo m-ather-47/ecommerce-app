@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { neonAuth } from "@neondatabase/auth/next/server";
-import dbConnect from "@/lib/mongodb";
-import User, { IUser } from "@/lib/models/User";
+import { db, users } from "@/lib/db";
+import { eq } from "drizzle-orm";
+import { generateId } from "@/lib/db/utils";
+import type { User } from "@/lib/db/schema";
 
-export type AuthenticatedRequest = NextRequest & { user: IUser };
+export type AuthenticatedRequest = NextRequest & { user: User };
 
 type RouteContext = { params: Promise<Record<string, string>> };
 
@@ -19,16 +21,30 @@ export function withAuth(handler: AnyHandlerFn) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
 
-      await dbConnect();
+      // Find or create user
+      let userResult = await db
+        .select()
+        .from(users)
+        .where(eq(users.neonAuthId, authUser.id))
+        .limit(1);
 
-      let user = await User.findOne({ neonAuthId: authUser.id });
+      let user = userResult[0];
+
       if (!user) {
-        user = await User.create({
+        const newUser = {
+          id: generateId(),
           neonAuthId: authUser.id,
           email: authUser.email,
           name: authUser.name || authUser.email.split("@")[0],
-          role: "customer",
-        });
+          role: "customer" as const,
+          phone: null,
+          shippingAddress: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        await db.insert(users).values(newUser);
+        user = newUser;
       }
 
       (req as AuthenticatedRequest).user = user;

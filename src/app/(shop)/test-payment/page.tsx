@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getOrder } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
 import type { Order } from "@/lib/types";
 
-export default function TestPaymentPage() {
+function TestPaymentContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
@@ -145,5 +145,19 @@ export default function TestPaymentPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function TestPaymentPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto max-w-lg px-4 py-16">
+          <div className="h-64 animate-pulse rounded-xl bg-gray-200" />
+        </div>
+      }
+    >
+      <TestPaymentContent />
+    </Suspense>
   );
 }

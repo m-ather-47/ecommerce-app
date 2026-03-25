@@ -1,40 +1,49 @@
 import { NextResponse } from "next/server";
 import { withAuth, AuthenticatedRequest } from "@/lib/middleware/auth";
 import { withRole } from "@/lib/middleware/requireRole";
-import dbConnect from "@/lib/mongodb";
-import User from "@/lib/models/User";
+import { db, users } from "@/lib/db";
+import { eq, desc, and, sql } from "drizzle-orm";
+import { mapUserToApi } from "@/lib/types";
 
 export const GET = withAuth(
   withRole("admin")(async (req: AuthenticatedRequest) => {
-    await dbConnect();
-
     const { searchParams } = new URL(req.url);
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "20")));
-    const skip = (page - 1) * limit;
+    const offset = (page - 1) * limit;
     const search = searchParams.get("q");
     const role = searchParams.get("role");
 
-    const filter: Record<string, unknown> = {};
-    if (search) {
-      filter.$or = [
-        { email: { $regex: search, $options: "i" } },
-        { name: { $regex: search, $options: "i" } },
-      ];
-    }
-    if (role) filter.role = role;
+    const conditions = [];
 
-    const [users, total] = await Promise.all([
-      User.find(filter)
-        .sort({ createdAt: -1 })
-        .skip(skip)
+    if (search) {
+      const searchTerm = `%${search}%`;
+      conditions.push(
+        sql`(${users.email} LIKE ${searchTerm} OR ${users.name} LIKE ${searchTerm})`
+      );
+    }
+
+    if (role) {
+      conditions.push(eq(users.role, role as "customer" | "admin"));
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const [userResults, countResult] = await Promise.all([
+      db
+        .select()
+        .from(users)
+        .where(whereClause)
+        .orderBy(desc(users.createdAt))
         .limit(limit)
-        .lean(),
-      User.countDocuments(filter),
+        .offset(offset),
+      db.select({ count: sql<number>`COUNT(*)` }).from(users).where(whereClause),
     ]);
 
+    const total = countResult[0]?.count || 0;
+
     return NextResponse.json({
-      users,
+      users: userResults.map(mapUserToApi),
       pagination: {
         page,
         limit,

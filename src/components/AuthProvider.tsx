@@ -16,6 +16,9 @@ export default function AuthProvider({
       authClient={authClient}
       navigate={(path) => router.push(path)}
       replace={(path) => router.replace(path)}
+      social={{
+        providers: ["google"],
+      }}
     >
       {children}
     </NeonAuthUIProvider>

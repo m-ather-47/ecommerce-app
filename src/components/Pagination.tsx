@@ -23,7 +23,7 @@ export default function Pagination({
     return `${basePath}?${params.toString()}`;
   }
 
-  const pages = [];
+  const pages: number[] = [];
   const showEllipsisStart = currentPage > 3;
   const showEllipsisEnd = currentPage < totalPages - 2;
 

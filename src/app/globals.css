@@ -287,6 +287,63 @@
   margin-top: 0.25rem;
 }
 
+/* Social Login Button Styles */
+.auth-container button:not([type="submit"]) {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  background-color: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  margin-bottom: 0.75rem;
+}
+
+.auth-container button:not([type="submit"]):hover {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+}
+
+.auth-container button:not([type="submit"]):active {
+  transform: translateY(0);
+}
+
+.auth-container button:not([type="submit"]) svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Divider styling */
+.auth-container [data-slot="separator"],
+.auth-container hr {
+  margin: 1.5rem 0;
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  position: relative;
+}
+
+.auth-container [data-slot="separator"]::after {
+  content: "or";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  padding: 0 1rem;
+  color: #9ca3af;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 /* Custom scrollbar */
 @layer utilities {
   .scrollbar-thin::-webkit-scrollbar {

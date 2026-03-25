@@ -4,7 +4,9 @@ import { withRole } from "@/lib/middleware/requireRole";
 import { withValidation } from "@/lib/middleware/validate";
 import { updateOrderStatusSchema } from "@/lib/schemas/order.schema";
 import { errorResponse, AppError } from "@/lib/errors";
-import Order from "@/lib/models/Order";
+import { db, orders, orderItems } from "@/lib/db";
+import { eq } from "drizzle-orm";
+import { mapOrderToApi, mapOrderItemToApi, OrderStatus } from "@/lib/types";
 
 type RouteContext = { params: Promise<Record<string, string>> };
 
@@ -12,8 +14,14 @@ export const GET = withAuth(
   async (req: AuthenticatedRequest, context: RouteContext) => {
     try {
       const { orderId } = await context.params;
-      const order = await Order.findById(orderId);
 
+      const orderResult = await db
+        .select()
+        .from(orders)
+        .where(eq(orders.id, orderId))
+        .limit(1);
+
+      const order = orderResult[0];
       if (!order) {
         return NextResponse.json(
           { error: "Order not found" },
@@ -22,17 +30,21 @@ export const GET = withAuth(
       }
 
       // Customers can only view their own orders
-      if (
-        req.user.role !== "admin" &&
-        order.userId.toString() !== req.user._id.toString()
-      ) {
+      if (req.user.role !== "admin" && order.userId !== req.user.id) {
         return NextResponse.json(
           { error: "Order not found" },
           { status: 404 }
         );
       }
 
-      return NextResponse.json({ order });
+      const items = await db
+        .select()
+        .from(orderItems)
+        .where(eq(orderItems.orderId, orderId));
+
+      return NextResponse.json({
+        order: mapOrderToApi(order, items.map(mapOrderItemToApi)),
+      });
     } catch (error) {
       return errorResponse(error);
     }
@@ -55,7 +67,13 @@ export const PATCH = withAuth(
           const { orderId } = await context.params;
           const { status } = await req.json();
 
-          const order = await Order.findById(orderId);
+          const orderResult = await db
+            .select()
+            .from(orders)
+            .where(eq(orders.id, orderId))
+            .limit(1);
+
+          const order = orderResult[0];
           if (!order) {
             return NextResponse.json(
               { error: "Order not found" },
@@ -71,12 +89,31 @@ export const PATCH = withAuth(
             );
           }
 
-          order.status = status;
-          if (status === "shipped") order.shippedAt = new Date();
-          if (status === "delivered") order.deliveredAt = new Date();
+          const updates: Partial<typeof orders.$inferInsert> = {
+            status: status as OrderStatus,
+            updatedAt: new Date(),
+          };
 
-          await order.save();
-          return NextResponse.json({ order });
+          if (status === "shipped") updates.shippedAt = new Date();
+          if (status === "delivered") updates.deliveredAt = new Date();
+
+          await db.update(orders).set(updates).where(eq(orders.id, orderId));
+
+          // Fetch updated order
+          const updatedOrderResult = await db
+            .select()
+            .from(orders)
+            .where(eq(orders.id, orderId))
+            .limit(1);
+
+          const items = await db
+            .select()
+            .from(orderItems)
+            .where(eq(orderItems.orderId, orderId));
+
+          return NextResponse.json({
+            order: mapOrderToApi(updatedOrderResult[0], items.map(mapOrderItemToApi)),
+          });
         } catch (error) {
           return errorResponse(error);
         }

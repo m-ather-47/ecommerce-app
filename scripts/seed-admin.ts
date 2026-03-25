@@ -1,61 +1,43 @@
-import mongoose from "mongoose";
 import * as dotenv from "dotenv";
+import { db, users } from "../src/lib/db";
+import { eq } from "drizzle-orm";
+import { generateId } from "../src/lib/db/utils";
 
 dotenv.config({ path: ".env.local" });
 
-const UserSchema = new mongoose.Schema(
-  {
-    neonAuthId: { type: String, required: true, unique: true, index: true },
-    email: { type: String, required: true, unique: true },
-    name: { type: String, required: true },
-    role: {
-      type: String,
-      enum: ["customer", "admin"],
-      default: "customer",
-    },
-    phone: { type: String },
-    shippingAddress: {
-      street: { type: String },
-      city: { type: String },
-      state: { type: String },
-      postalCode: { type: String },
-      country: { type: String },
-    },
-  },
-  { timestamps: true }
-);
-
-const User = mongoose.models.User || mongoose.model("User", UserSchema);
-
 async function seedAdmin() {
   try {
-    const mongoUri = process.env.MONGODB_URI;
-    if (!mongoUri) {
-      throw new Error("MONGODB_URI is not defined in environment variables");
-    }
-
-    console.log("Connecting to MongoDB...");
-    await mongoose.connect(mongoUri);
-    console.log("Connected to MongoDB");
-
     const adminEmail = "ather@gmail.com";
 
     // Check if user already exists
-    let user = await User.findOne({ email: adminEmail });
+    const existingUserResult = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, adminEmail))
+      .limit(1);
+
+    let user = existingUserResult[0];
 
     if (user) {
       // Update existing user to admin
-      user.role = "admin";
-      await user.save();
+      await db
+        .update(users)
+        .set({ role: "admin", updatedAt: new Date() })
+        .where(eq(users.id, user.id));
       console.log(`\nUpdated existing user "${adminEmail}" to admin role`);
     } else {
       // Create a placeholder admin user
       // Note: neonAuthId will be updated when the user signs up
-      user = await User.create({
+      await db.insert(users).values({
+        id: generateId(),
         neonAuthId: `admin_${Date.now()}`,
         email: adminEmail,
         name: "Ather",
         role: "admin",
+        phone: null,
+        shippingAddress: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
       console.log(`\nCreated admin user with email: ${adminEmail}`);
     }
@@ -71,7 +53,6 @@ async function seedAdmin() {
     console.log("then run this script again to grant admin role.");
     console.log("=================================\n");
 
-    await mongoose.disconnect();
     console.log("Done!");
     process.exit(0);
   } catch (error) {

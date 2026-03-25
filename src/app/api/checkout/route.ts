@@ -1,42 +1,61 @@
 import { NextResponse } from "next/server";
 import { withAuth, AuthenticatedRequest } from "@/lib/middleware/auth";
 import { errorResponse, AppError } from "@/lib/errors";
-import Cart from "@/lib/models/Cart";
-import Product from "@/lib/models/Product";
-import Order from "@/lib/models/Order";
+import { db, carts, cartItems, products, orders, orderItems } from "@/lib/db";
+import { eq, inArray } from "drizzle-orm";
+import { generateId, generateOrderNumber } from "@/lib/db/utils";
 import crypto from "crypto";
-
-function generateOrderNumber(): string {
-  const date = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-  const rand = crypto.randomBytes(2).toString("hex").toUpperCase();
-  return `ORD-${date}-${rand}`;
-}
 
 export const POST = withAuth(async (req: AuthenticatedRequest) => {
   try {
-    const cart = await Cart.findOne({ userId: req.user._id });
-    if (!cart || cart.items.length === 0) {
+    // Find cart
+    const cartResult = await db
+      .select()
+      .from(carts)
+      .where(eq(carts.userId, req.user.id))
+      .limit(1);
+
+    const cart = cartResult[0];
+    if (!cart) {
       throw new AppError("Cart is empty", 400);
     }
 
-    if (!req.user.shippingAddress?.street) {
+    // Get cart items
+    const cartItemsResult = await db
+      .select()
+      .from(cartItems)
+      .where(eq(cartItems.cartId, cart.id));
+
+    if (cartItemsResult.length === 0) {
+      throw new AppError("Cart is empty", 400);
+    }
+
+    // Check shipping address
+    const shippingAddress = req.user.shippingAddress
+      ? JSON.parse(req.user.shippingAddress)
+      : null;
+
+    if (!shippingAddress?.street) {
       throw new AppError(
         "Shipping address is required. Update your profile first.",
         400
       );
     }
 
-    const productIds = cart.items.map((item: { productId: unknown }) => item.productId);
-    const products = await Product.find({ _id: { $in: productIds } });
-    const productMap = new Map(
-      products.map((p) => [p._id.toString(), p])
-    );
+    // Get all products in cart
+    const productIds = cartItemsResult.map((item) => item.productId);
+    const productsResult = await db
+      .select()
+      .from(products)
+      .where(inArray(products.id, productIds));
 
-    const orderItems = [];
+    const productMap = new Map(productsResult.map((p) => [p.id, p]));
+
+    const orderItemsData = [];
     let subtotal = 0;
 
-    for (const cartItem of cart.items) {
-      const product = productMap.get(cartItem.productId.toString());
+    for (const cartItem of cartItemsResult) {
+      const product = productMap.get(cartItem.productId);
       if (!product || !product.isActive) {
         throw new AppError(
           `Product "${cartItem.name}" is no longer available`,
@@ -50,36 +69,50 @@ export const POST = withAuth(async (req: AuthenticatedRequest) => {
         );
       }
 
+      const images = product.images ? JSON.parse(product.images) : [];
       const itemTotal = product.price * cartItem.quantity;
       subtotal += itemTotal;
 
-      orderItems.push({
-        productId: product._id,
+      orderItemsData.push({
+        id: generateId(),
+        productId: product.id,
         name: product.name,
         price: product.price,
         quantity: cartItem.quantity,
-        image: product.images[0],
+        image: images[0] || null,
       });
     }
 
     const total = subtotal;
     const testCheckoutId = `test_${crypto.randomBytes(8).toString("hex")}`;
+    const orderId = generateId();
 
-    const order = await Order.create({
-      userId: req.user._id,
+    // Create order
+    await db.insert(orders).values({
+      id: orderId,
+      userId: req.user.id,
       orderNumber: generateOrderNumber(),
-      items: orderItems,
       subtotal,
       tax: 0,
       total,
       status: "pending",
       whopCheckoutId: testCheckoutId,
-      shippingAddress: req.user.shippingAddress,
+      shippingAddress: JSON.stringify(shippingAddress),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
+
+    // Create order items
+    for (const item of orderItemsData) {
+      await db.insert(orderItems).values({
+        ...item,
+        orderId,
+      });
+    }
 
     return NextResponse.json({
       checkoutId: testCheckoutId,
-      purchaseUrl: `${process.env.NEXT_PUBLIC_APP_URL}/test-payment?orderId=${order._id}`,
+      purchaseUrl: `${process.env.NEXT_PUBLIC_APP_URL}/test-payment?orderId=${orderId}`,
     });
   } catch (error) {
     return errorResponse(error);

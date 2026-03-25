@@ -4,8 +4,10 @@ import { withRole } from "@/lib/middleware/requireRole";
 import { withValidation } from "@/lib/middleware/validate";
 import { createProductSchema } from "@/lib/schemas/product.schema";
 import { errorResponse } from "@/lib/errors";
-import dbConnect from "@/lib/mongodb";
-import Product from "@/lib/models/Product";
+import { db, products } from "@/lib/db";
+import { eq, and, desc, asc, sql } from "drizzle-orm";
+import { generateId } from "@/lib/db/utils";
+import { mapProductToApi } from "@/lib/types";
 
 function slugify(text: string): string {
   return text
@@ -18,37 +20,52 @@ function slugify(text: string): string {
 
 export async function GET(req: NextRequest) {
   try {
-    await dbConnect();
-
     const { searchParams } = new URL(req.url);
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "20")));
-    const skip = (page - 1) * limit;
+    const offset = (page - 1) * limit;
     const q = searchParams.get("q");
     const category = searchParams.get("category");
     const sort = searchParams.get("sort") || "newest";
 
-    const filter: Record<string, unknown> = { isActive: true };
+    const conditions = [eq(products.isActive, true)];
 
     if (q) {
-      filter.$text = { $search: q };
+      const searchTerm = `%${q}%`;
+      conditions.push(
+        sql`(${products.name} LIKE ${searchTerm} OR ${products.description} LIKE ${searchTerm} OR ${products.category} LIKE ${searchTerm})`
+      );
     }
+
     if (category) {
-      filter.category = category;
+      conditions.push(eq(products.category, category));
     }
 
-    let sortOption: Record<string, 1 | -1> = { createdAt: -1 };
-    if (sort === "price_asc") sortOption = { price: 1 };
-    else if (sort === "price_desc") sortOption = { price: -1 };
-    else if (sort === "newest") sortOption = { createdAt: -1 };
+    let orderBy;
+    if (sort === "price_asc") orderBy = asc(products.price);
+    else if (sort === "price_desc") orderBy = desc(products.price);
+    else orderBy = desc(products.createdAt);
 
-    const [products, total] = await Promise.all([
-      Product.find(filter).sort(sortOption).skip(skip).limit(limit),
-      Product.countDocuments(filter),
+    const whereClause = conditions.length > 1 ? and(...conditions) : conditions[0];
+
+    const [productResults, countResult] = await Promise.all([
+      db
+        .select()
+        .from(products)
+        .where(whereClause)
+        .orderBy(orderBy)
+        .limit(limit)
+        .offset(offset),
+      db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(products)
+        .where(whereClause),
     ]);
 
+    const total = countResult[0]?.count || 0;
+
     return NextResponse.json({
-      products,
+      products: productResults.map(mapProductToApi),
       pagination: {
         page,
         limit,
@@ -69,13 +86,46 @@ export const POST = withAuth(
           const body = await req.json();
 
           let slug = slugify(body.name);
-          const existing = await Product.findOne({ slug });
-          if (existing) {
+
+          // Check for existing slug
+          const existingResult = await db
+            .select()
+            .from(products)
+            .where(eq(products.slug, slug))
+            .limit(1);
+
+          if (existingResult[0]) {
             slug = `${slug}-${Date.now()}`;
           }
 
-          const product = await Product.create({ ...body, slug });
-          return NextResponse.json({ product }, { status: 201 });
+          const productId = generateId();
+          const now = new Date();
+
+          await db.insert(products).values({
+            id: productId,
+            name: body.name,
+            slug,
+            description: body.description,
+            price: body.price,
+            currency: body.currency || "usd",
+            images: body.images ? JSON.stringify(body.images) : null,
+            category: body.category,
+            stock: body.stock || 0,
+            isActive: body.isActive !== false,
+            createdAt: now,
+            updatedAt: now,
+          });
+
+          const productResult = await db
+            .select()
+            .from(products)
+            .where(eq(products.id, productId))
+            .limit(1);
+
+          return NextResponse.json(
+            { product: mapProductToApi(productResult[0]) },
+            { status: 201 }
+          );
         } catch (error) {
           return errorResponse(error);
         }

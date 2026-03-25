@@ -1,42 +1,63 @@
 import { NextResponse } from "next/server";
 import { withAuth, AuthenticatedRequest } from "@/lib/middleware/auth";
 import { errorResponse } from "@/lib/errors";
-import Order from "@/lib/models/Order";
-
-type RouteContext = { params: Promise<Record<string, string>> };
+import { db, orders, orderItems } from "@/lib/db";
+import { eq, and, desc, sql } from "drizzle-orm";
+import { mapOrderToApi, mapOrderItemToApi, OrderStatus } from "@/lib/types";
 
 export const GET = withAuth(async (req: AuthenticatedRequest) => {
   try {
     const { searchParams } = new URL(req.url);
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "20")));
-    const skip = (page - 1) * limit;
+    const offset = (page - 1) * limit;
     const status = searchParams.get("status");
 
     const isAdmin = req.user.role === "admin";
-    const filter: Record<string, unknown> = {};
+    const conditions = [];
 
     if (!isAdmin) {
-      filter.userId = req.user._id;
+      conditions.push(eq(orders.userId, req.user.id));
     } else {
       const userId = searchParams.get("userId");
-      if (userId) filter.userId = userId;
+      if (userId) conditions.push(eq(orders.userId, userId));
     }
 
     if (status) {
-      filter.status = status;
+      conditions.push(eq(orders.status, status as OrderStatus));
     }
 
-    const [orders, total] = await Promise.all([
-      Order.find(filter)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit),
-      Order.countDocuments(filter),
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const [orderResults, countResult] = await Promise.all([
+      db
+        .select()
+        .from(orders)
+        .where(whereClause)
+        .orderBy(desc(orders.createdAt))
+        .limit(limit)
+        .offset(offset),
+      db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(orders)
+        .where(whereClause),
     ]);
 
+    const total = countResult[0]?.count || 0;
+
+    // Get items for each order
+    const ordersWithItems = await Promise.all(
+      orderResults.map(async (order) => {
+        const items = await db
+          .select()
+          .from(orderItems)
+          .where(eq(orderItems.orderId, order.id));
+        return mapOrderToApi(order, items.map(mapOrderItemToApi));
+      })
+    );
+
     return NextResponse.json({
-      orders,
+      orders: ordersWithItems,
       pagination: { page, limit, total, pages: Math.ceil(total / limit) },
     });
   } catch (error) {
