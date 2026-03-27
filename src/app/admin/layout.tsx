@@ -22,7 +22,30 @@ export default async function AdminLayout({
     .where(eq(users.neonAuthId, user.id))
     .limit(1);
 
-  const dbUser = dbUserResult[0];
+  let dbUser = dbUserResult[0];
+
+  if (!dbUser && user.email) {
+    const dbUserByEmailResult = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, user.email))
+      .limit(1);
+
+    const existingByEmail = dbUserByEmailResult[0];
+
+    if (existingByEmail) {
+      await db
+        .update(users)
+        .set({ neonAuthId: user.id, updatedAt: new Date() })
+        .where(eq(users.id, existingByEmail.id));
+
+      dbUser = {
+        ...existingByEmail,
+        neonAuthId: user.id,
+        updatedAt: new Date(),
+      };
+    }
+  }
 
   if (!dbUser || dbUser.role !== "admin") {
     redirect("/");

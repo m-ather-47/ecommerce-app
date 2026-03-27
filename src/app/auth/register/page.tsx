@@ -110,16 +110,6 @@ export default function RegisterPage() {
 
           <div className="auth-container rounded-2xl border border-gray-200 bg-white p-8 pb-6 shadow-sm">
             <AuthView pathname="sign-up" />
-            
-            <div className="mt-6 text-center text-sm text-gray-500">
-              Already have an account?{" "}
-              <Link
-                href="/auth/login"
-                className="font-semibold text-black hover:text-gray-800 transition-colors hover:underline underline-offset-4"
-              >
-                Sign In
-              </Link>
-            </div>
           </div>
 
           {/* Terms */}

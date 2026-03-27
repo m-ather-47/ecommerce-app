@@ -4,13 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run db:init && next build",
     "start": "next start",
     "lint": "eslint",
+    "db:init": "npx tsx scripts/db-init.ts",
     "seed": "npx tsx scripts/seed-products.ts",
     "seed:admin": "npx tsx scripts/seed-admin.ts"
   },
   "dependencies": {
+    "@libsql/client": "^0.15.15",
     "@neondatabase/auth": "^0.1.0-beta.21",
     "@tailwindcss/postcss": "^4.2.1",
     "better-sqlite3": "^12.8.0",

@@ -170,7 +170,7 @@ export function mapUserToApi(user: {
 export function mapOrderToApi(
   order: {
     id: string;
-    userId: string;
+    userId: string | null;
     orderNumber: string;
     subtotal: number;
     tax: number;
@@ -189,7 +189,7 @@ export function mapOrderToApi(
 ): Order {
   return {
     _id: order.id,
-    userId: order.userId,
+    userId: order.userId || "",
     orderNumber: order.orderNumber,
     items,
     subtotal: order.subtotal,

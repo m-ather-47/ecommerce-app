@@ -88,15 +88,17 @@ export async function POST(req: NextRequest): Promise<Response> {
     })
     .where(eq(orders.id, orderId));
 
-  // Clear the user's cart
-  const cartResult = await db
-    .select()
-    .from(carts)
-    .where(eq(carts.userId, order.userId))
-    .limit(1);
+  // Clear cart only for authenticated orders that have a user id.
+  if (order.userId) {
+    const cartResult = await db
+      .select()
+      .from(carts)
+      .where(eq(carts.userId, order.userId))
+      .limit(1);
 
-  if (cartResult[0]) {
-    await db.delete(cartItems).where(eq(cartItems.cartId, cartResult[0].id));
+    if (cartResult[0]) {
+      await db.delete(cartItems).where(eq(cartItems.cartId, cartResult[0].id));
+    }
   }
 
   return NextResponse.json({ success: true, status: "paid" });

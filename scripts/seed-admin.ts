@@ -7,7 +7,7 @@ dotenv.config({ path: ".env.local" });
 
 async function seedAdmin() {
   try {
-    const adminEmail = "ather@gmail.com";
+    const adminEmail = "athermaqsood26@gmail.com";
 
     // Check if user already exists
     const existingUserResult = await db

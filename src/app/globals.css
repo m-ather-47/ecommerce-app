@@ -288,7 +288,7 @@
 }
 
 /* Social Login Button Styles */
-.auth-container button:not([type="submit"]) {
+.auth-container button:not([type="submit"])[class*="w-full"] {
   width: 100%;
   display: inline-flex;
   align-items: center;
@@ -306,39 +306,38 @@
   margin-bottom: 0.75rem;
 }
 
-.auth-container button:not([type="submit"]):hover {
+.auth-container button:not([type="submit"])[class*="w-full"]:hover {
   background-color: #f9fafb;
   border-color: #d1d5db;
   transform: translateY(-1px);
 }
 
-.auth-container button:not([type="submit"]):active {
+.auth-container button:not([type="submit"])[class*="w-full"]:active {
   transform: translateY(0);
 }
 
-.auth-container button:not([type="submit"]) svg {
+.auth-container button:not([type="submit"])[class*="w-full"] svg {
   width: 1.25rem;
   height: 1.25rem;
 }
 
 /* Divider styling */
 .auth-container span.text-muted-foreground {
-  font-size: 0 !important;
-  color: transparent !important;
+  font-size: 0.875rem !important;
+  color: #9ca3af !important;
+  display: flex;
+  width: auto;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  margin: 0 auto;
+}
+
+.auth-container [role="separator"] {
+  width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.auth-container span.text-muted-foreground::after {
-  content: "OR";
-  font-size: 0.875rem;
-  color: #9ca3af;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  display: block;
-  background: white;
-  padding: 0 0.5rem;
 }
 
 .auth-container form {

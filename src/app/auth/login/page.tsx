@@ -87,16 +87,6 @@ export default function LoginPage() {
 
           <div className="auth-container rounded-2xl border border-gray-200 bg-white p-8 pb-6 shadow-sm">
             <AuthView pathname="sign-in" />
-            
-            <div className="mt-6 text-center text-sm text-gray-500">
-              Don&apos;t have an account?{" "}
-              <Link
-                href="/auth/register"
-                className="font-semibold text-black hover:text-gray-800 transition-colors hover:underline underline-offset-4"
-              >
-                Sign Up
-              </Link>
-            </div>
           </div>
 
           {/* Security badge */}
