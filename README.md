@@ -35,6 +35,36 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
+## Store Screenshots
+
+### Home
+
+![Home page](screenshots/home.png)
+
+### Products Grid
+
+![Products page](screenshots/products.png)
+
+### Product Detail
+
+![Product detail page](screenshots/product-detail.png)
+
+### Cart
+
+![Cart page](screenshots/cart.png)
+
+### Checkout
+
+![Checkout page](screenshots/checkout.png)
+
+### Login
+
+![Login page](screenshots/login.png)
+
+### Register
+
+![Register page](screenshots/register.png)
+
 ## Database Setup (Local + Vercel)
 
 This project supports two database drivers using the `DB_DRIVER` environment variable:
